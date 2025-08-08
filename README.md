@@ -1,0 +1,107 @@
+# Online Trivia Game
+
+A real-time multiplayer trivia game supporting up to 100 players with admin controls.
+
+## Features
+
+- **Multiplayer Support**: Up to 100 concurrent players
+- **Real-time Gameplay**: WebSocket-based real-time communication
+- **Admin Panel**: Game creation, management, and control
+- **3 Rounds**: 15 questions each, increasing point values
+- **Voting System**: Players vote to eliminate incorrect answers
+- **Score Tracking**: Automatic scoring and elimination at 10 points
+- **Read-only Mode**: Eliminated players can still watch
+
+## Setup
+
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run the Application**:
+   ```bash
+   python app.py
+   ```
+
+3. **Access the Game**:
+   - Main page: http://localhost:5000
+   - Admin login: http://localhost:5000/admin
+
+## Default Admin Credentials
+
+- Username: `admin`
+- Password: `admin123`
+
+## Game Rules
+
+1. **3 Rounds** with 15 questions each
+2. **30 seconds** per question
+3. **Point System**:
+   - Round 1: 1 point per vote
+   - Round 2: 2 points per vote  
+   - Round 3: 4 points per vote
+4. **Maximum 4 points per round**
+5. **Elimination at 10 total points**
+6. **Read-only mode** for eliminated players
+
+## How to Play
+
+### For Administrators:
+1. Login at `/admin`
+2. Create a new game with name and password
+3. Share game ID and password with players
+4. Monitor players in the admin panel
+5. Start the game when ready
+
+### For Players:
+1. Go to main page
+2. Enter game ID, password, and your name
+3. Wait in lobby for game to start
+4. Answer questions within 30 seconds
+5. Vote to eliminate incorrect players
+6. Try to avoid elimination!
+
+## Technical Details
+
+- **Backend**: Flask + SocketIO
+- **Database**: SQLite
+- **Frontend**: HTML/CSS/JavaScript
+- **Real-time**: WebSocket communication
+- **Concurrent Games**: Multiple games can run simultaneously
+
+## File Structure
+
+```
+trivia_game/
+├── app.py              # Main application
+├── requirements.txt    # Dependencies
+├── trivia.db          # SQLite database (auto-created)
+├── templates/         # HTML templates
+│   ├── base.html
+│   ├── index.html
+│   ├── admin_login.html
+│   ├── admin_dashboard.html
+│   ├── game_lobby.html
+│   └── game_play.html
+└── admin_game.html    # Admin game control panel
+```
+
+## Deployment on Linux
+
+1. Install Python 3.7+
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run with: `python app.py`
+4. For production, use gunicorn:
+   ```bash
+   pip install gunicorn
+   gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:5000
+   ```
+
+## Database Schema
+
+- **admins**: Admin user credentials
+- **questions**: Trivia questions with 4 options
+- **game_configs**: Game configurations and passwords
+
+The system automatically creates sample questions and a default admin user on first run."# trivia_game" 
