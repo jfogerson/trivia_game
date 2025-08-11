@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="intro">
+    <h1>🎯 Online Trivia Game</h1>
+    <p>Test your knowledge in this exciting multiplayer trivia challenge!</p>
+</div>
+
+<div style="text-align: center;">
+    <h2>Join a Game</h2>
+    <form id="joinForm">
+        <div style="margin: 20px 0;">
+            <input type="text" id="gameId" placeholder="Game ID" required style="padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
+        </div>
+        <div style="margin: 20px 0;">
+            <input type="password" id="gamePassword" placeholder="Game Password" required style="padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
+        </div>
+        <div style="margin: 20px 0;">
+            <input type="text" id="playerName" placeholder="Your Name" required style="padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
+        </div>
+        <button type="submit" class="btn">Join Game</button>
+    </form>
+    
+    <div style="margin: 40px 0;">
+        <a href="/admin" class="btn" style="text-decoration: none;">Administrator Login</a>
+    </div>
+</div>
+
+<script>
+document.getElementById('joinForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const gameId = document.getElementById('gameId').value;
+    const password = document.getElementById('gamePassword').value;
+    const playerName = document.getElementById('playerName').value;
+    
+    if (gameId && password && playerName) {
+        window.location.href = `/game/${gameId}?password=${password}&name=${playerName}`;
+    }
+});
+</script>
+{% endblock %}

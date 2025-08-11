@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Administrator Login</h1>
+
+<form id="loginForm">
+    <div style="margin: 20px 0;">
+        <label>Username:</label><br>
+        <input type="text" id="username" required style="padding: 10px; width: 200px; border: 1px solid #ccc; border-radius: 5px;">
+    </div>
+    <div style="margin: 20px 0;">
+        <label>Password:</label><br>
+        <input type="password" id="password" required style="padding: 10px; width: 200px; border: 1px solid #ccc; border-radius: 5px;">
+    </div>
+    <button type="submit" class="btn">Login</button>
+</form>
+
+<div id="error" style="color: red; margin: 20px 0;"></div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+        window.location.href = '/admin/dashboard';
+    } else {
+        document.getElementById('error').textContent = 'Invalid credentials';
+    }
+});
+</script>
+{% endblock %}

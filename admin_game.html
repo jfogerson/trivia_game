@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Admin Panel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 20px 0; }
+        .player { padding: 10px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; }
+        .player.eliminated { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Game Admin Panel</h1>
+    
+    <div id="gameControls">
+        <button id="startGameBtn" class="btn">Start Game</button>
+        <button id="stopGameBtn" class="btn" style="background: #dc3545;">Stop Game</button>
+    </div>
+    
+    <div id="gameStatus">
+        <h2>Game Status: <span id="status">Waiting</span></h2>
+        <p>Players: <span id="playerCount">0</span>/100</p>
+    </div>
+    
+    <div id="playersArea">
+        <h2>Players</h2>
+        <div id="playersList" class="player-grid"></div>
+    </div>
+    
+    <script>
+        const socket = io();
+        const gameId = window.location.pathname.split('/')[2];
+        
+        socket.emit('admin_join', { game_id: gameId });
+        
+        document.getElementById('startGameBtn').onclick = function() {
+            socket.emit('start_game', { game_id: gameId });
+        };
+        
+        socket.on('player_joined', function(data) {
+            document.getElementById('playerCount').textContent = data.players.length;
+            
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            data.players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'player';
+                if (player.eliminated) div.classList.add('eliminated');
+                
+                div.innerHTML = `
+                    <strong>${player.name}</strong><br>
+                    Score: ${player.score}<br>
+                    ${player.eliminated ? '<em>Eliminated</em>' : ''}
+                    ${player.readonly ? '<em>Read-only</em>' : ''}
+                `;
+                playersList.appendChild(div);
+            });
+        });
+        
+        socket.on('game_started', function() {
+            document.getElementById('status').textContent = 'Playing';
+            document.getElementById('startGameBtn').disabled = true;
+        });
+    </script>
+</body>
+</html>

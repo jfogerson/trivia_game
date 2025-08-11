@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="gameHeader">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div id="roundInfo"></div>
+        <div id="timer" class="timer">30</div>
+        <div id="playerInfo"></div>
+    </div>
+</div>
+
+<div id="questionArea" class="question-box" style="display: none;">
+    <h2 id="questionText"></h2>
+    <div id="optionsArea" class="options"></div>
+    <div id="submitArea" style="text-align: center; margin: 20px 0;">
+        <button id="submitBtn" class="btn" disabled>Submit Answer</button>
+    </div>
+</div>
+
+<div id="resultArea" style="display: none;">
+    <h3>Question Result</h3>
+    <div id="correctAnswer"></div>
+    <div id="playerResults"></div>
+</div>
+
+<div id="votingArea" style="display: none;">
+    <h3>Vote to Eliminate</h3>
+    <p>Select a player who answered incorrectly:</p>
+    <div id="votingOptions"></div>
+</div>
+
+<div id="scoresArea" class="scores">
+    <h3>Current Scores</h3>
+    <div id="scoresList"></div>
+</div>
+
+<div id="finalResults" style="display: none;">
+    <h2>Game Over!</h2>
+    <div id="finalScores"></div>
+</div>
+
+<script>
+const socket = io();
+const gameId = window.location.pathname.split('/')[2];
+const urlParams = new URLSearchParams(window.location.search);
+const playerName = urlParams.get('name');
+
+let currentQuestion = null;
+let selectedAnswer = null;
+let timeLeft = 30;
+let timerInterval = null;
+
+socket.emit('join_game', {
+    game_id: gameId,
+    password: 'temp', // Already authenticated
+    player_name: playerName
+});
+
+socket.on('new_question', function(data) {
+    currentQuestion = data;
+    selectedAnswer = null;
+    timeLeft = 30;
+    
+    document.getElementById('roundInfo').textContent = `Round ${data.round} - Question ${data.question_num}/15`;
+    document.getElementById('questionText').textContent = data.question;
+    
+    const optionsArea = document.getElementById('optionsArea');
+    optionsArea.innerHTML = '';
+    
+    Object.entries(data.options).forEach(([key, value]) => {
+        const option = document.createElement('div');
+        option.className = 'option';
+        option.textContent = `${key.toUpperCase()}) ${value}`;
+        option.onclick = () => selectOption(key, option);
+        optionsArea.appendChild(option);
+    });
+    
+    document.getElementById('questionArea').style.display = 'block';
+    document.getElementById('resultArea').style.display = 'none';
+    document.getElementById('votingArea').style.display = 'none';
+    document.getElementById('submitBtn').disabled = true;
+    
+    startTimer();
+});
+
+function selectOption(answer, element) {
+    document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedAnswer = answer;
+    document.getElementById('submitBtn').disabled = false;
+}
+
+function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    
+    timerInterval = setInterval(() => {
+        document.getElementById('timer').textContent = timeLeft;
+        timeLeft--;
+        
+        if (timeLeft < 0) {
+            clearInterval(timerInterval);
+            if (selectedAnswer) {
+                submitAnswer();
+            }
+        }
+    }, 1000);
+}
+
+document.getElementById('submitBtn').onclick = submitAnswer;
+
+function submitAnswer() {
+    if (!selectedAnswer) return;
+    
+    socket.emit('submit_answer', {
+        game_id: gameId,
+        answer: selectedAnswer
+    });
+    
+    document.getElementById('submitBtn').disabled = true;
+    document.querySelectorAll('.option').forEach(opt => opt.style.pointerEvents = 'none');
+}
+
+socket.on('question_result', function(data) {
+    clearInterval(timerInterval);
+    
+    document.getElementById('correctAnswer').innerHTML = `<strong>Correct Answer: ${data.correct_answer.toUpperCase()}</strong>`;
+    
+    const correct = data.correct_players.map(p => p.name).join(', ');
+    const incorrect = data.incorrect_players.map(p => p.name).join(', ');
+    
+    document.getElementById('playerResults').innerHTML = `
+        <p><strong>Correct:</strong> ${correct || 'None'}</p>
+        <p><strong>Incorrect:</strong> ${incorrect || 'None'}</p>
+    `;
+    
+    // Highlight correct answer
+    document.querySelectorAll('.option').forEach(opt => {
+        const optionLetter = opt.textContent.charAt(0).toLowerCase();
+        if (optionLetter === data.correct_answer) {
+            opt.classList.add('correct');
+        } else if (selectedAnswer === optionLetter) {
+            opt.classList.add('incorrect');
+        }
+    });
+    
+    document.getElementById('resultArea').style.display = 'block';
+});
+
+socket.on('voting_phase', function(data) {
+    const votingOptions = document.getElementById('votingOptions');
+    votingOptions.innerHTML = '';
+    
+    data.incorrect_players.forEach(player => {
+        const button = document.createElement('button');
+        button.className = 'btn';
+        button.textContent = player.name;
+        button.onclick = () => votePlayer(player.sid);
+        votingOptions.appendChild(button);
+    });
+    
+    document.getElementById('votingArea').style.display = 'block';
+});
+
+function votePlayer(targetSid) {
+    socket.emit('vote_player', {
+        game_id: gameId,
+        target_sid: targetSid
+    });
+    
+    document.getElementById('votingArea').style.display = 'none';
+}
+
+socket.on('vote_recorded', function(data) {
+    alert(`You voted for ${data.target} (+${data.points} points)`);
+});
+
+socket.on('round_ended', function(data) {
+    alert(`Round ended! Starting Round ${data.next_round}...`);
+});
+
+socket.on('game_ended', function(data) {
+    document.getElementById('questionArea').style.display = 'none';
+    document.getElementById('resultArea').style.display = 'none';
+    document.getElementById('votingArea').style.display = 'none';
+    
+    const finalScores = document.getElementById('finalScores');
+    finalScores.innerHTML = '<h3>Final Rankings:</h3>';
+    
+    data.final_scores.forEach((score, index) => {
+        const div = document.createElement('div');
+        div.innerHTML = `${index + 1}. ${score[0]} - ${score[1]} points`;
+        finalScores.appendChild(div);
+    });
+    
+    document.getElementById('finalResults').style.display = 'block';
+});
+
+socket.on('player_joined', function(data) {
+    const scoresList = document.getElementById('scoresList');
+    scoresList.innerHTML = '';
+    
+    data.players.forEach(player => {
+        const div = document.createElement('div');
+        div.innerHTML = `${player.name}: ${player.score} points ${player.eliminated ? '(Eliminated)' : ''}`;
+        scoresList.appendChild(div);
+    });
+});
+</script>
+{% endblock %}

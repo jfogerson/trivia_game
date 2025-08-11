@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div>
+        <h2>Create New Game</h2>
+        <form id="createGameForm">
+            <div style="margin: 10px 0;">
+                <input type="text" id="gameName" placeholder="Game Name" required style="padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <div style="margin: 10px 0;">
+                <input type="password" id="gamePassword" placeholder="Game Password" required style="padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+            <button type="submit" class="btn">Create Game</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Active Games</h2>
+        <div id="activeGames">
+            {% for game_id, game in active_games.items() %}
+            <div class="game-item" style="background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                <h3>{{ game.name }} (ID: {{ game_id }})</h3>
+                <p>Players: {{ game.players|length }}/100</p>
+                <p>Status: {{ game.status }}</p>
+                <a href="/game/{{ game_id }}/admin" class="btn">Manage</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 40px;">
+    <h2>All Games</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr style="background: #f8f9fa;">
+            <th style="padding: 10px; border: 1px solid #ddd;">ID</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Name</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Created</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Actions</th>
+        </tr>
+        {% for game in games %}
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ game[0] }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ game[1] }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ game[3] }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+                <a href="/game/{{ game[0] }}/admin" class="btn">Manage</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<script>
+document.getElementById('createGameForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const response = await fetch('/api/admin/create_game', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            name: document.getElementById('gameName').value,
+            password: document.getElementById('gamePassword').value
+        })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+        location.reload();
+    }
+});
+</script>
+{% endblock %}

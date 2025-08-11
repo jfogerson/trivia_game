@@ -12,21 +12,89 @@ A real-time multiplayer trivia game supporting up to 100 players with admin cont
 - **Score Tracking**: Automatic scoring and elimination at 10 points
 - **Read-only Mode**: Eliminated players can still watch
 
-## Setup
+## File Locations
 
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+All trivia game files are located in:
+```
+c:\Users\jamfog02\OneDrive - Robert Half\PythonFiles\trivia_game\
+```
 
-2. **Run the Application**:
-   ```bash
-   python app.py
-   ```
+## Linux Installation
 
-3. **Access the Game**:
-   - Main page: http://localhost:5000
-   - Admin login: http://localhost:5000/admin
+### 1. Copy Files to Linux Server
+```bash
+# Create directory
+mkdir ~/trivia_game
+cd ~/trivia_game
+
+# Copy all files from Windows to this directory:
+# - app.py (RDS version)
+# - app_dynamodb.py (DynamoDB version) 
+# - requirements.txt
+# - setup_rds.py
+# - setup_dynamodb.py
+# - admin_game.html
+# - templates/ folder with all HTML files
+# - README.md
+# - README_AWS.md
+```
+
+### 2. Install System Dependencies
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+```
+
+### 3. Create Virtual Environment
+```bash
+python3 -m venv trivia_env
+source trivia_env/bin/activate
+```
+
+### 4. Install Python Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Configure AWS (for DynamoDB - Recommended)
+```bash
+# Install AWS CLI
+sudo apt install awscli
+
+# Configure credentials
+aws configure
+```
+
+### 6. Setup Database
+```bash
+# For DynamoDB (Recommended)
+python3 setup_dynamodb.py
+
+# OR for RDS (if preferred)
+python3 setup_rds.py
+```
+
+### 7. Run the Application
+```bash
+# DynamoDB version (Recommended)
+python3 app_dynamodb.py
+
+# OR RDS version
+python3 app.py
+```
+
+### 8. Access the Game
+- Main page: http://your-server-ip:5000
+- Admin login: http://your-server-ip:5000/admin
+
+### 9. Production Deployment
+```bash
+# Install gunicorn
+pip install gunicorn eventlet
+
+# Run in production
+gunicorn --worker-class eventlet -w 1 app_dynamodb:app --bind 0.0.0.0:5000
+```
 
 ## Default Admin Credentials
 
@@ -87,16 +155,26 @@ trivia_game/
 └── admin_game.html    # Admin game control panel
 ```
 
-## Deployment on Linux
+## Complete File List to Copy
 
-1. Install Python 3.7+
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run with: `python app.py`
-4. For production, use gunicorn:
-   ```bash
-   pip install gunicorn
-   gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:5000
-   ```
+```
+trivia_game/
+├── app.py                    # RDS version
+├── app_dynamodb.py          # DynamoDB version (recommended)
+├── requirements.txt         # Python dependencies
+├── setup_rds.py            # RDS setup script
+├── setup_dynamodb.py       # DynamoDB setup script
+├── admin_game.html         # Admin control panel
+├── README.md               # Basic documentation
+├── README_AWS.md           # AWS setup guide
+└── templates/              # HTML templates folder
+    ├── base.html
+    ├── index.html
+    ├── admin_login.html
+    ├── admin_dashboard.html
+    ├── game_lobby.html
+    └── game_play.html
+```
 
 ## Database Schema
 

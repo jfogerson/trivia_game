@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Trivia Game{% endblock %}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f0f0; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .question-box { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .option { padding: 15px; background: #e9ecef; border: 2px solid transparent; border-radius: 5px; cursor: pointer; text-align: center; }
+        .option:hover { background: #dee2e6; }
+        .option.selected { border-color: #007bff; background: #cce7ff; }
+        .option.correct { background: #d4edda; border-color: #28a745; }
+        .option.incorrect { background: #f8d7da; border-color: #dc3545; }
+        .timer { font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0; }
+        .scores { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .player-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .player { padding: 10px; background: #e9ecef; border-radius: 5px; text-align: center; }
+        .player.eliminated { background: #f8d7da; }
+        .intro { text-align: center; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
