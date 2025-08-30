@@ -118,9 +118,15 @@ def admin_dashboard():
     if 'admin' not in session:
         return redirect(url_for('admin_login'))
     
-    games_table = dynamodb.Table('trivia_games')
-    response = games_table.scan()
-    game_configs = response['Items']
+    try:
+        games_table = dynamodb.Table('trivia_games')
+        response = games_table.scan()
+        game_configs = response['Items']
+        print(f"Dashboard - Found {len(game_configs)} games in DB")
+        print(f"Dashboard - Active games in memory: {list(games.keys())}")
+    except Exception as e:
+        print(f"ERROR loading dashboard: {e}")
+        game_configs = []
     
     return render_template('admin_dashboard.html', games=game_configs, active_games=games)
 
@@ -151,23 +157,65 @@ def admin_login_api():
 
 @app.route('/api/admin/create_game', methods=['POST'])
 def create_game():
+    print(f"=== CREATE GAME REQUEST ===")
+    print(f"Session: {session}")
+    print(f"Request data: {request.get_json()}")
+    
     if 'admin' not in session:
-        return jsonify({'success': False})
+        print("ERROR: Admin not in session")
+        return jsonify({'success': False, 'error': 'Not authenticated'})
     
-    name = request.json['name']
-    password = request.json['password']
-    game_id = str(int(time.time()))
-    
-    games_table = dynamodb.Table('trivia_games')
-    games_table.put_item(Item={
-        'id': game_id,
-        'name': name,
-        'password': password,
-        'created_at': datetime.now().isoformat()
-    })
-    
-    games[game_id] = GameState(game_id, name, password)
-    return jsonify({'success': True, 'game_id': game_id})
+    try:
+        request_data = request.get_json()
+        if not request_data:
+            print("ERROR: No JSON data received")
+            return jsonify({'success': False, 'error': 'No data received'})
+            
+        name = request_data.get('name')
+        password = request_data.get('password')
+        
+        if not name or not password:
+            print(f"ERROR: Missing name or password. Name: {name}, Password: {password}")
+            return jsonify({'success': False, 'error': 'Name and password required'})
+        
+        game_id = str(int(time.time()))
+        
+        print(f"Creating game: {name} with ID: {game_id}")
+        
+        # Test DynamoDB connection
+        try:
+            games_table = dynamodb.Table('trivia_games')
+            print(f"Table status: {games_table.table_status}")
+        except Exception as table_error:
+            print(f"ERROR accessing table: {table_error}")
+            return jsonify({'success': False, 'error': f'Table access error: {str(table_error)}'})
+        
+        # Write to DynamoDB
+        item = {
+            'id': game_id,
+            'name': name,
+            'password': password,
+            'created_at': datetime.now().isoformat()
+        }
+        print(f"Writing item: {item}")
+        
+        response = games_table.put_item(Item=item)
+        print(f"DynamoDB response: {response}")
+        
+        # Verify write by reading back
+        verify_response = games_table.get_item(Key={'id': game_id})
+        print(f"Verification read: {verify_response}")
+        
+        games[game_id] = GameState(game_id, name, password)
+        print(f"In-memory games: {list(games.keys())}")
+        
+        return jsonify({'success': True, 'game_id': game_id})
+        
+    except Exception as e:
+        print(f"ERROR creating game: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)})
 
 @socketio.on('join_game')
 def handle_join_game(data):
@@ -397,5 +445,11 @@ def end_game(game_id):
     socketio.emit('game_ended', {'final_scores': final_scores}, room=game_id)
 
 if __name__ == '__main__':
-    init_dynamodb()
+    print("Initializing DynamoDB...")
+    try:
+        init_dynamodb()
+        print("DynamoDB initialized successfully")
+    except Exception as e:
+        print(f"ERROR initializing DynamoDB: {e}")
+    
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
