@@ -7,11 +7,17 @@ from datetime import datetime
 import threading
 import time
 import os
+import sys
 from decimal import Decimal
+import logging
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'trivia_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+app.logger.setLevel(logging.DEBUG)
 
 # DynamoDB setup
 dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-east-1'))
@@ -445,11 +451,12 @@ def end_game(game_id):
     socketio.emit('game_ended', {'final_scores': final_scores}, room=game_id)
 
 if __name__ == '__main__':
-    print("Initializing DynamoDB...")
+    print("Initializing DynamoDB...", flush=True)
     try:
         init_dynamodb()
-        print("DynamoDB initialized successfully")
+        print("DynamoDB initialized successfully", flush=True)
     except Exception as e:
-        print(f"ERROR initializing DynamoDB: {e}")
+        print(f"ERROR initializing DynamoDB: {e}", flush=True)
     
+    print("Starting Flask application...", flush=True)
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
