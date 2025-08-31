@@ -125,13 +125,23 @@ def admin_dashboard():
         return redirect(url_for('admin_login'))
     
     try:
+        print("=== LOADING ADMIN DASHBOARD ===", flush=True)
         games_table = dynamodb.Table('trivia_games')
+        print(f"Table name: {games_table.table_name}", flush=True)
+        print(f"Table region: {games_table.meta.client.meta.region_name}", flush=True)
+        
         response = games_table.scan()
+        print(f"DynamoDB scan response: {response}", flush=True)
+        
         game_configs = response['Items']
-        print(f"Dashboard - Found {len(game_configs)} games in DB")
-        print(f"Dashboard - Active games in memory: {list(games.keys())}")
+        print(f"Dashboard - Found {len(game_configs)} games in DB", flush=True)
+        print(f"Dashboard - Games data: {game_configs}", flush=True)
+        print(f"Dashboard - Active games in memory: {list(games.keys())}", flush=True)
+        
     except Exception as e:
-        print(f"ERROR loading dashboard: {e}")
+        print(f"ERROR loading dashboard: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
         game_configs = []
     
     return render_template('admin_dashboard.html', games=game_configs, active_games=games)
