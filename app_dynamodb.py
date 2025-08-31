@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 app.logger.setLevel(logging.DEBUG)
 
 # DynamoDB setup
-dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-east-1'))
+dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-west-2'))
 
 # Game state
 games = {}

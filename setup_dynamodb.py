@@ -9,7 +9,7 @@ import os
 
 def create_dynamodb_tables():
     """Create DynamoDB tables for trivia game"""
-    dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-east-1'))
+    dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-west-2'))
     
     tables_to_create = [
         {
