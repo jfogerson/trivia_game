@@ -43,12 +43,16 @@
         </tr>
         {% for game in games %}
         <tr>
-            <td style="padding: 10px; border: 1px solid #ddd;">{{ game[0] }}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">{{ game[1] }}</td>
-            <td style="padding: 10px; border: 1px solid #ddd;">{{ game[3] }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ game.id }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ game.name }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ game.created_at }}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">
-                <a href="/game/{{ game[0] }}/admin" class="btn">Manage</a>
+                <a href="/game/{{ game.id }}/admin" class="btn">Manage</a>
             </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4" style="padding: 10px; border: 1px solid #ddd; text-align: center;">No games found</td>
         </tr>
         {% endfor %}
     </table>
