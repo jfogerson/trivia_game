@@ -121,8 +121,14 @@ def admin_login():
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
+    print(f"=== ADMIN DASHBOARD ACCESSED ===", flush=True)
+    print(f"Session contents: {dict(session)}", flush=True)
+    
     if 'admin' not in session:
+        print("Admin not in session, redirecting to login", flush=True)
         return redirect(url_for('admin_login'))
+    
+    print("Admin authenticated, loading dashboard", flush=True)
     
     try:
         print("=== LOADING ADMIN DASHBOARD ===", flush=True)
@@ -137,6 +143,8 @@ def admin_dashboard():
         print(f"Dashboard - Found {len(game_configs)} games in DB", flush=True)
         print(f"Dashboard - Games data: {game_configs}", flush=True)
         print(f"Dashboard - Active games in memory: {list(games.keys())}", flush=True)
+        
+        print(f"Rendering template with {len(game_configs)} games", flush=True)
         
     except Exception as e:
         print(f"ERROR loading dashboard: {e}", flush=True)
