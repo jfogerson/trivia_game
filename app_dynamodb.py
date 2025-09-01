@@ -173,6 +173,29 @@ def game_play(game_id):
         return "Game not found", 404
     return render_template('game_play.html', game_id=game_id)
 
+@app.route('/game/<game_id>/admin')
+def game_admin(game_id):
+    if 'admin' not in session:
+        return redirect(url_for('admin_login'))
+    
+    # Check if game exists in memory or database
+    if game_id not in games:
+        # Try to load from database
+        try:
+            games_table = dynamodb.Table('trivia_games')
+            response = games_table.get_item(Key={'id': game_id})
+            if 'Item' not in response:
+                return "Game not found", 404
+            
+            # Create game state if it doesn't exist in memory
+            game_data = response['Item']
+            games[game_id] = GameState(game_id, game_data['name'], game_data['password'])
+        except Exception as e:
+            return f"Error loading game: {e}", 500
+    
+    with open('admin_game.html', 'r') as f:
+        return f.read().replace('{{ game_id }}', game_id)
+
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login_api():
     username = request.json['username']
