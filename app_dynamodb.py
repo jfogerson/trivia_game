@@ -20,7 +20,9 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 app.logger.setLevel(logging.DEBUG)
 
 # DynamoDB setup
-dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_REGION', 'us-west-2'))
+region = os.getenv('AWS_REGION', 'us-west-2')
+print(f"Using DynamoDB region: {region}", flush=True)
+dynamodb = boto3.resource('dynamodb', region_name=region)
 
 # Game state
 games = {}
@@ -28,6 +30,7 @@ game_timers = {}
 
 def init_dynamodb():
     """Initialize DynamoDB tables"""
+    print(f"Creating DynamoDB tables in region: {region}", flush=True)
     try:
         # Create admins table
         admins_table = dynamodb.create_table(
@@ -57,7 +60,11 @@ def init_dynamodb():
         games_table.wait_until_exists()
         
     except dynamodb.meta.client.exceptions.ResourceInUseException:
+        print("Tables already exist", flush=True)
         pass  # Tables already exist
+    except Exception as e:
+        print(f"Error creating tables: {e}", flush=True)
+        print(f"Region being used: {dynamodb.meta.client.meta.region_name}", flush=True)
     
     # Insert default admin
     admins_table = dynamodb.Table('trivia_admins')
@@ -209,9 +216,11 @@ def create_game():
         # Test DynamoDB connection
         try:
             games_table = dynamodb.Table('trivia_games')
-            print(f"Table status: {games_table.table_status}")
+            print(f"DynamoDB region: {games_table.meta.client.meta.region_name}", flush=True)
+            print(f"Table ARN: {games_table.table_arn}", flush=True)
+            print(f"Table status: {games_table.table_status}", flush=True)
         except Exception as table_error:
-            print(f"ERROR accessing table: {table_error}")
+            print(f"ERROR accessing table: {table_error}", flush=True)
             return jsonify({'success': False, 'error': f'Table access error: {str(table_error)}'})
         
         # Write to DynamoDB
@@ -221,17 +230,17 @@ def create_game():
             'password': password,
             'created_at': datetime.now().isoformat()
         }
-        print(f"Writing item: {item}")
+        print(f"Writing item: {item}", flush=True)
         
         response = games_table.put_item(Item=item)
-        print(f"DynamoDB response: {response}")
+        print(f"DynamoDB response: {response}", flush=True)
         
         # Verify write by reading back
         verify_response = games_table.get_item(Key={'id': game_id})
-        print(f"Verification read: {verify_response}")
+        print(f"Verification read: {verify_response}", flush=True)
         
         games[game_id] = GameState(game_id, name, password)
-        print(f"In-memory games: {list(games.keys())}")
+        print(f"In-memory games: {list(games.keys())}", flush=True)
         
         return jsonify({'success': True, 'game_id': game_id})
         
