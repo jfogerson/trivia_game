@@ -331,43 +331,61 @@ def handle_get_players(data):
 @socketio.on('start_game')
 def handle_start_game(data):
     game_id = data['game_id']
+    print(f"Starting game {game_id}", flush=True)
+    
     if game_id not in games:
+        print(f"Game {game_id} not found", flush=True)
         return
     
     game = games[game_id]
     if game.admin_sid != request.sid:
+        print(f"Unauthorized start game request", flush=True)
         return
     
     # Load questions from DynamoDB
+    print(f"Loading questions from DynamoDB", flush=True)
     questions_table = dynamodb.Table('trivia_questions')
     response = questions_table.scan()
     all_questions = response['Items']
+    print(f"Found {len(all_questions)} questions in database", flush=True)
     
     import random
     game.questions = random.sample(all_questions, min(45, len(all_questions)))
+    print(f"Selected {len(game.questions)} questions for game", flush=True)
     
     game.status = 'playing'
     game.current_round = 1
     game.current_question = 0
     
+    print(f"Emitting game_started to room {game_id}", flush=True)
     socketio.emit('game_started', room=game_id)
-    start_question(game_id)
+    
+    # Start first question after a short delay
+    threading.Timer(2.0, start_question, [game_id]).start()
+    print(f"First question will start in 2 seconds", flush=True)
 
 def start_question(game_id):
     if game_id not in games:
+        print(f"Game {game_id} not found in start_question", flush=True)
         return
     
     game = games[game_id]
+    print(f"Starting question for game {game_id}, round {game.current_round}, question {game.current_question}", flush=True)
+    
     if game.current_question >= 15:
+        print(f"Round {game.current_round} complete, ending round", flush=True)
         end_round(game_id)
         return
     
     question_idx = (game.current_round - 1) * 15 + game.current_question
     if question_idx >= len(game.questions):
+        print(f"No more questions, ending game", flush=True)
         end_game(game_id)
         return
     
     question = game.questions[question_idx]
+    print(f"Question data: {question}", flush=True)
+    
     game.question_start_time = time.time()
     game.answers = {}
     
@@ -383,12 +401,14 @@ def start_question(game_id):
         }
     }
     
+    print(f"Sending question data: {question_data}", flush=True)
     socketio.emit('new_question', question_data, room=game_id)
     
     # Start 30-second timer
     timer = threading.Timer(30.0, question_timeout, [game_id])
     game_timers[game_id] = timer
     timer.start()
+    print(f"Question timer started for 30 seconds", flush=True)
 
 @socketio.on('submit_answer')
 def handle_submit_answer(data):
