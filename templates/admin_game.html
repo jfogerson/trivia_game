@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Game Admin Panel - Game ID: {{ game_id }}</h1>
+
+<div id="gameControls">
+    <button id="startGameBtn" class="btn">Start Game</button>
+    <button id="stopGameBtn" class="btn" style="background: #dc3545;">Stop Game</button>
+</div>
+
+<div id="gameStatus">
+    <h2>Game Status: <span id="status">Waiting</span></h2>
+    <p>Players: <span id="playerCount">0</span>/100</p>
+</div>
+
+<div id="playersArea">
+    <h2>Players</h2>
+    <div id="playersList" class="player-list"></div>
+</div>
+
+<script>
+const socket = io();
+const gameId = '{{ game_id }}';
+
+console.log('Admin connecting to game:', gameId);
+
+socket.emit('admin_join', { game_id: gameId });
+
+document.getElementById('startGameBtn').onclick = function() {
+    console.log('Starting game:', gameId);
+    socket.emit('start_game', { game_id: gameId });
+};
+
+socket.on('admin_joined', function() {
+    console.log('Admin successfully joined game');
+});
+
+socket.on('player_joined', function(data) {
+    console.log('Player joined:', data);
+    document.getElementById('playerCount').textContent = data.players.length;
+    
+    const playersList = document.getElementById('playersList');
+    playersList.innerHTML = '';
+    
+    data.players.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'player';
+        if (player.eliminated) div.classList.add('eliminated');
+        
+        div.innerHTML = `
+            <strong>${player.name}</strong><br>
+            Score: ${player.score}<br>
+            ${player.eliminated ? '<em>Eliminated</em>' : ''}
+            ${player.readonly ? '<em>Read-only</em>' : ''}
+        `;
+        playersList.appendChild(div);
+    });
+});
+
+socket.on('game_started', function() {
+    document.getElementById('status').textContent = 'Playing';
+    document.getElementById('startGameBtn').disabled = true;
+});
+
+socket.on('connect', function() {
+    console.log('Socket connected');
+});
+
+socket.on('disconnect', function() {
+    console.log('Socket disconnected');
+});
+
+socket.on('error', function(data) {
+    console.error('Socket error:', data);
+    alert('Error: ' + data.message);
+});
+</script>
+{% endblock %}

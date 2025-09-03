@@ -34,13 +34,23 @@
         const socket = io();
         const gameId = window.location.pathname.split('/')[2];
         
+        console.log('Admin connecting to game:', gameId);
+        
         socket.emit('admin_join', { game_id: gameId });
         
         document.getElementById('startGameBtn').onclick = function() {
+            console.log('Starting game:', gameId);
             socket.emit('start_game', { game_id: gameId });
         };
         
+        socket.on('admin_joined', function() {
+            console.log('Admin successfully joined game');
+            // Request current player list
+            socket.emit('get_players', { game_id: gameId });
+        });
+        
         socket.on('player_joined', function(data) {
+            console.log('Player joined:', data);
             document.getElementById('playerCount').textContent = data.players.length;
             
             const playersList = document.getElementById('playersList');
@@ -64,6 +74,14 @@
         socket.on('game_started', function() {
             document.getElementById('status').textContent = 'Playing';
             document.getElementById('startGameBtn').disabled = true;
+        });
+        
+        socket.on('connect', function() {
+            console.log('Socket connected');
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Socket disconnected');
         });
     </script>
 </body>

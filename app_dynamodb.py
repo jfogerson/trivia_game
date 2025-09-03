@@ -193,8 +193,7 @@ def game_admin(game_id):
         except Exception as e:
             return f"Error loading game: {e}", 500
     
-    with open('admin_game.html', 'r') as f:
-        return f.read().replace('{{ game_id }}', game_id)
+    return render_template('admin_game.html', game_id=game_id)
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login_api():
@@ -306,10 +305,28 @@ def handle_join_game(data):
 @socketio.on('admin_join')
 def handle_admin_join(data):
     game_id = data['game_id']
+    print(f"Admin joining game: {game_id}", flush=True)
     if game_id in games:
         games[game_id].admin_sid = request.sid
         join_room(game_id)
         emit('admin_joined')
+        
+        # Send current player list to admin
+        game = games[game_id]
+        player_list = list(game.players.values())
+        print(f"Sending {len(player_list)} players to admin", flush=True)
+        emit('player_joined', {'players': player_list})
+    else:
+        print(f"Game {game_id} not found in memory", flush=True)
+        emit('error', {'message': 'Game not found'})
+
+@socketio.on('get_players')
+def handle_get_players(data):
+    game_id = data['game_id']
+    if game_id in games:
+        game = games[game_id]
+        player_list = list(game.players.values())
+        emit('player_joined', {'players': player_list})
 
 @socketio.on('start_game')
 def handle_start_game(data):
