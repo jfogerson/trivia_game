@@ -67,7 +67,8 @@ socket.on('player_joined', function(data) {
 socket.on('game_started', function() {
     document.getElementById('waitingArea').style.display = 'none';
     document.getElementById('gameArea').style.display = 'block';
-    window.location.href = `/game/${gameId}/play?name=${playerName}`;
+    sessionStorage.setItem('gamePassword', password);
+    window.location.href = `/game/${gameId}/play?name=${playerName}&password=${password}`;
 });
 
 socket.on('error', function(data) {

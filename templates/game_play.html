@@ -44,19 +44,40 @@ const socket = io();
 const gameId = window.location.pathname.split('/')[2];
 const urlParams = new URLSearchParams(window.location.search);
 const playerName = urlParams.get('name');
+const gamePassword = urlParams.get('password') || sessionStorage.getItem('gamePassword');
 
 let currentQuestion = null;
 let selectedAnswer = null;
 let timeLeft = 30;
 let timerInterval = null;
 
+console.log('Connecting to game:', gameId, 'as player:', playerName);
+
 socket.emit('join_game', {
     game_id: gameId,
-    password: 'temp', // Already authenticated
+    password: gamePassword,
     player_name: playerName
 });
 
+socket.on('joined_game', function(data) {
+    console.log('Successfully joined game:', data);
+});
+
+socket.on('error', function(data) {
+    console.error('Game error:', data);
+    alert('Error: ' + data.message);
+});
+
+socket.on('connect', function() {
+    console.log('Socket connected');
+});
+
+socket.on('disconnect', function() {
+    console.log('Socket disconnected');
+});
+
 socket.on('new_question', function(data) {
+    console.log('Received new question:', data);
     currentQuestion = data;
     selectedAnswer = null;
     timeLeft = 30;
