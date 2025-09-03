@@ -278,19 +278,27 @@ def handle_join_game(data):
     password = data['password']
     player_name = data['player_name']
     
+    print(f"Player {player_name} trying to join game {game_id} with password {password}", flush=True)
+    
     if game_id not in games:
+        print(f"Game {game_id} not found in memory", flush=True)
         emit('error', {'message': 'Game not found'})
         return
     
     game = games[game_id]
+    print(f"Game password: {game.password}, provided password: {password}", flush=True)
+    
     if game.password != password:
+        print(f"Invalid password for game {game_id}", flush=True)
         emit('error', {'message': 'Invalid password'})
         return
     
     if len(game.players) >= 100:
+        print(f"Game {game_id} is full", flush=True)
         emit('error', {'message': 'Game is full'})
         return
     
+    print(f"Player {player_name} joining room {game_id}", flush=True)
     join_room(game_id)
     game.players[request.sid] = {
         'name': player_name,
@@ -299,6 +307,7 @@ def handle_join_game(data):
         'readonly': False
     }
     
+    print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
     emit('joined_game', {'player_name': player_name})
     socketio.emit('player_joined', {'players': list(game.players.values())}, room=game_id)
 
@@ -358,6 +367,7 @@ def handle_start_game(data):
     game.current_question = 0
     
     print(f"Emitting game_started to room {game_id}", flush=True)
+    print(f"Players in room: {[p['name'] for p in game.players.values()]}", flush=True)
     socketio.emit('game_started', room=game_id)
     
     # Start first question after a short delay
