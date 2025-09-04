@@ -85,5 +85,10 @@ socket.on('game_stopped', function(data) {
     alert(data.message);
     location.reload();
 });
+
+socket.on('close_tab', function(data) {
+    alert(data.message);
+    window.close();
+});
 </script>
 {% endblock %}

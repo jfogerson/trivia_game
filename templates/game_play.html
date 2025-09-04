@@ -168,16 +168,21 @@ socket.on('question_result', function(data) {
 });
 
 socket.on('voting_phase', function(data) {
+    console.log('Voting phase started:', data);
     const votingOptions = document.getElementById('votingOptions');
     votingOptions.innerHTML = '';
     
-    data.incorrect_players.forEach(player => {
-        const button = document.createElement('button');
-        button.className = 'btn';
-        button.textContent = player.name;
-        button.onclick = () => votePlayer(player.sid);
-        votingOptions.appendChild(button);
-    });
+    if (data.incorrect_players.length === 0) {
+        votingOptions.innerHTML = '<p>No players available to vote for.</p>';
+    } else {
+        data.incorrect_players.forEach(player => {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.textContent = player.name;
+            button.onclick = () => votePlayer(player.sid);
+            votingOptions.appendChild(button);
+        });
+    }
     
     document.getElementById('votingArea').style.display = 'block';
 });
@@ -193,6 +198,35 @@ function votePlayer(targetSid) {
 
 socket.on('vote_recorded', function(data) {
     alert(`You voted for ${data.target} (+${data.points} points)`);
+    document.getElementById('votingArea').style.display = 'none';
+});
+
+socket.on('vote_failed', function(data) {
+    alert(data.message);
+    
+    // Update voting options with available targets
+    const votingOptions = document.getElementById('votingOptions');
+    votingOptions.innerHTML = '';
+    
+    if (data.available_targets.length === 0) {
+        votingOptions.innerHTML = '<p>No more players available to vote for.</p>';
+    } else {
+        data.available_targets.forEach(player => {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.textContent = player.name;
+            button.onclick = () => votePlayer(player.sid);
+            votingOptions.appendChild(button);
+        });
+    }
+});
+
+socket.on('points_received', function(data) {
+    alert(`You received ${data.points} points this round!`);
+});
+
+socket.on('player_eliminated', function(data) {
+    alert(`${data.name} has been eliminated from the game!`);
 });
 
 socket.on('round_ended', function(data) {
@@ -235,6 +269,11 @@ socket.on('game_cancelled', function(data) {
 socket.on('game_stopped', function(data) {
     alert(data.message);
     location.reload();
+});
+
+socket.on('close_tab', function(data) {
+    alert(data.message);
+    window.close();
 });
 </script>
 {% endblock %}

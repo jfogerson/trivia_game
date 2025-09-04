@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="/admin/dashboard" class="btn" style="background: #6c757d;">← Return to Dashboard</a>
+</div>
+
 <h1>Game Admin Panel - Game ID: {{ game_id }}</h1>
 
 <div id="gameControls">
     <button id="startGameBtn" class="btn">Start Game</button>
     <button id="stopGameBtn" class="btn" style="background: #dc3545;">Stop Game</button>
+    <button id="nextQuestionBtn" class="btn" style="background: #28a745; display: none;">Next Question</button>
 </div>
 
 <div id="gameStatus">
@@ -16,6 +21,14 @@
 <div id="playersArea">
     <h2>Players</h2>
     <div id="playersList" class="player-list"></div>
+</div>
+
+<div id="questionSummary" style="display: none; margin-top: 20px;">
+    <h3>Question Results</h3>
+    <div id="correctPlayersList"></div>
+    <div id="incorrectPlayersList"></div>
+    <div id="currentScores"></div>
+    <div id="votingStatus"></div>
 </div>
 
 <script>
@@ -36,6 +49,13 @@ document.getElementById('stopGameBtn').onclick = function() {
         console.log('Stopping game:', gameId);
         socket.emit('stop_game', { game_id: gameId });
     }
+};
+
+document.getElementById('nextQuestionBtn').onclick = function() {
+    console.log('Starting next question:', gameId);
+    socket.emit('next_question', { game_id: gameId });
+    document.getElementById('nextQuestionBtn').style.display = 'none';
+    document.getElementById('questionSummary').style.display = 'none';
 };
 
 socket.on('admin_joined', function() {
@@ -74,7 +94,34 @@ socket.on('game_stopped', function(data) {
     document.getElementById('status').textContent = 'Waiting';
     document.getElementById('startGameBtn').disabled = false;
     document.getElementById('stopGameBtn').disabled = true;
+    document.getElementById('nextQuestionBtn').style.display = 'none';
     alert(data.message);
+});
+
+socket.on('admin_question_summary', function(data) {
+    console.log('Question summary:', data);
+    
+    document.getElementById('correctPlayersList').innerHTML = 
+        '<h4>Correct Players:</h4>' + 
+        data.correct_players.map(p => p.name).join(', ');
+    
+    document.getElementById('incorrectPlayersList').innerHTML = 
+        '<h4>Incorrect Players:</h4>' + 
+        data.incorrect_players.map(p => p.name).join(', ');
+    
+    let scoresHtml = '<h4>Current Scores:</h4>';
+    Object.entries(data.all_scores).forEach(([name, score]) => {
+        scoresHtml += `<p>${name}: ${score} points</p>`;
+    });
+    document.getElementById('currentScores').innerHTML = scoresHtml;
+    
+    document.getElementById('questionSummary').style.display = 'block';
+    document.getElementById('nextQuestionBtn').style.display = 'inline-block';
+});
+
+socket.on('voting_update', function(data) {
+    document.getElementById('votingStatus').innerHTML = 
+        `<p>Votes cast: ${data.votes_cast}</p>`;
 });
 
 socket.on('connect', function() {
@@ -88,6 +135,10 @@ socket.on('disconnect', function() {
 socket.on('error', function(data) {
     console.error('Socket error:', data);
     alert('Error: ' + data.message);
+});
+
+socket.on('player_eliminated', function(data) {
+    alert(`${data.name} has been eliminated!`);
 });
 </script>
 {% endblock %}
