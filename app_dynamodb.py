@@ -509,12 +509,17 @@ def handle_submit_answer(data):
         return
     
     game.answers[request.sid] = answer
+    print(f"Player {player['name']} submitted answer. Total answers: {len(game.answers)}", flush=True)
     
     # Check if all active players answered
-    active_players = [p for p in game.players.values() if not p['eliminated'] and not p['readonly']]
+    active_players = [sid for sid, p in game.players.items() if not p['eliminated'] and not p['readonly']]
+    print(f"Active players: {len(active_players)}, Answers received: {len(game.answers)}", flush=True)
+    
     if len(game.answers) >= len(active_players):
+        print(f"All players answered, stopping timer", flush=True)
         if game_id in game_timers:
             game_timers[game_id].cancel()
+            del game_timers[game_id]
         question_timeout(game_id)
 
 def question_timeout(game_id):
@@ -539,6 +544,8 @@ def question_timeout(game_id):
     game.voting_active = True
     game.votes_cast = {}
     game.points_awarded = {}
+    game.correct_players = correct_players
+    game.incorrect_players = incorrect_players
     
     socketio.emit('question_result', {
         'correct_answer': correct_answer,
@@ -546,28 +553,97 @@ def question_timeout(game_id):
         'incorrect_players': incorrect_players
     }, room=game_id)
     
-    # Send voting phase to correct players only
+    # Start voting phase if there are correct and incorrect players
     if correct_players and incorrect_players:
-        for correct_player in correct_players:
-            socketio.emit('voting_phase', {
-                'incorrect_players': [p for p in incorrect_players if game.players[p['sid']]['score'] < 10]
-            }, room=correct_player['sid'])
-        
-        # Send points received to incorrect players
-        for incorrect_player in incorrect_players:
-            points_this_round = sum(1 for vote in game.votes_cast.values() if vote == incorrect_player['sid'])
-            socketio.emit('points_received', {
-                'points': points_this_round
-            }, room=incorrect_player['sid'])
+        start_voting_phase(game_id)
+    else:
+        # No voting needed, proceed to next question
+        end_voting_phase(game_id)
+
+def start_voting_phase(game_id):
+    if game_id not in games:
+        return
     
-    # Send admin summary
+    game = games[game_id]
+    
+    # Send voting options to correct players
+    available_targets = [p for p in game.incorrect_players 
+                        if game.players[p['sid']]['score'] < 10]
+    
+    for correct_player in game.correct_players:
+        socketio.emit('voting_phase', {
+            'incorrect_players': available_targets,
+            'time_limit': 30
+        }, room=correct_player['sid'])
+    
+    # Start 30-second voting timer
+    timer = threading.Timer(30.0, voting_timeout, [game_id])
+    game_timers[game_id] = timer
+    timer.start()
+    print(f"Voting phase started for 30 seconds", flush=True)
+
+def voting_timeout(game_id):
+    if game_id not in games:
+        return
+    
+    game = games[game_id]
+    print(f"Voting timeout - assigning random votes", flush=True)
+    
+    # Assign random votes for players who didn't vote
+    import random
+    
+    for correct_player in game.correct_players:
+        if correct_player['sid'] not in game.votes_cast:
+            # Find available targets
+            available_targets = []
+            for incorrect_player in game.incorrect_players:
+                target_sid = incorrect_player['sid']
+                current_round_points = game.points_awarded.get(target_sid, 0)
+                total_score = game.players[target_sid]['score']
+                
+                if current_round_points < 4 and total_score < 10:
+                    available_targets.append(target_sid)
+            
+            if available_targets:
+                random_target = random.choice(available_targets)
+                game.votes_cast[correct_player['sid']] = random_target
+                game.points_awarded[random_target] = game.points_awarded.get(random_target, 0) + 1
+                game.players[random_target]['score'] += 1
+                
+                # Check for elimination
+                if game.players[random_target]['score'] >= 10:
+                    game.players[random_target]['eliminated'] = True
+                    game.players[random_target]['readonly'] = True
+                
+                print(f"Random vote: {correct_player['name']} -> {game.players[random_target]['name']}", flush=True)
+    
+    end_voting_phase(game_id)
+
+def end_voting_phase(game_id):
+    if game_id not in games:
+        return
+    
+    game = games[game_id]
+    game.voting_active = False
+    
+    # Send points received to incorrect players
+    for incorrect_player in game.incorrect_players:
+        points_this_round = game.points_awarded.get(incorrect_player['sid'], 0)
+        socketio.emit('points_received', {
+            'points': points_this_round
+        }, room=incorrect_player['sid'])
+    
+    # Send final admin summary
     if game.admin_sid:
         admin_summary = {
-            'correct_players': correct_players,
-            'incorrect_players': incorrect_players,
+            'correct_players': game.correct_players,
+            'incorrect_players': game.incorrect_players,
+            'points_awarded': game.points_awarded,
             'all_scores': {p['name']: p['score'] for p in game.players.values()}
         }
         socketio.emit('admin_question_summary', admin_summary, room=game.admin_sid)
+    
+    print(f"Voting phase ended for game {game_id}", flush=True)
 
 @socketio.on('vote_player')
 def handle_vote_player(data):
@@ -586,21 +662,19 @@ def handle_vote_player(data):
     
     # Check if voter already voted
     if request.sid in game.votes_cast:
+        emit('vote_failed', {'message': 'You have already voted'})
         return
-    
-    # Award 1 point per vote
-    points = 1
     
     # Check limits: max 4 points per round, max 10 total
     round_points = game.points_awarded.get(target_sid, 0)
     if round_points >= 4 or target['score'] >= 10:
         # Send updated list without this player
         available_targets = []
-        for sid, player in game.players.items():
-            if (sid in [p['sid'] for p in game.incorrect_players] and 
-                game.points_awarded.get(sid, 0) < 4 and 
-                player['score'] < 10):
-                available_targets.append({'sid': sid, 'name': player['name']})
+        for incorrect_player in game.incorrect_players:
+            sid = incorrect_player['sid']
+            if (game.points_awarded.get(sid, 0) < 4 and 
+                game.players[sid]['score'] < 10):
+                available_targets.append(incorrect_player)
         
         emit('vote_failed', {
             'message': f"{target['name']} cannot receive more points",
@@ -611,24 +685,33 @@ def handle_vote_player(data):
     # Record vote and award point
     game.votes_cast[request.sid] = target_sid
     game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + 1
-    target['score'] += points
+    target['score'] += 1
     
-    # Eliminate if 10+ points
+    # Check for elimination
     if target['score'] >= 10:
         target['eliminated'] = True
         target['readonly'] = True
         socketio.emit('player_eliminated', {'name': target['name']}, room=game_id)
     
-    emit('vote_recorded', {'target': target['name'], 'points': points})
+    emit('vote_recorded', {'target': target['name'], 'points': 1})
+    print(f"Vote recorded: {voter['name']} -> {target['name']}", flush=True)
     
-    # Update admin with current voting status
-    if game.admin_sid:
-        voting_summary = {
-            'votes_cast': len(game.votes_cast),
-            'points_awarded': game.points_awarded,
-            'all_scores': {p['name']: p['score'] for p in game.players.values()}
-        }
-        socketio.emit('voting_update', voting_summary, room=game.admin_sid)
+    # Check if all correct players have voted
+    if len(game.votes_cast) >= len(game.correct_players):
+        print(f"All votes cast, ending voting phase", flush=True)
+        if game_id in game_timers:
+            game_timers[game_id].cancel()
+            del game_timers[game_id]
+        end_voting_phase(game_id)
+    else:
+        # Update admin with current voting status
+        if game.admin_sid:
+            voting_summary = {
+                'votes_cast': len(game.votes_cast),
+                'total_voters': len(game.correct_players),
+                'points_awarded': game.points_awarded
+            }
+            socketio.emit('voting_update', voting_summary, room=game.admin_sid)
 
 def end_voting(game_id):
     next_question(game_id)

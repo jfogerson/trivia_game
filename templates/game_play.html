@@ -172,14 +172,37 @@ socket.on('voting_phase', function(data) {
     const votingOptions = document.getElementById('votingOptions');
     votingOptions.innerHTML = '';
     
+    // Add voting timer
+    let votingTimeLeft = data.time_limit || 30;
+    const timerDiv = document.createElement('div');
+    timerDiv.id = 'votingTimer';
+    timerDiv.style.fontSize = '18px';
+    timerDiv.style.fontWeight = 'bold';
+    timerDiv.style.textAlign = 'center';
+    timerDiv.style.margin = '10px 0';
+    votingOptions.appendChild(timerDiv);
+    
+    const votingInterval = setInterval(() => {
+        timerDiv.textContent = `Time to vote: ${votingTimeLeft}s`;
+        votingTimeLeft--;
+        
+        if (votingTimeLeft < 0) {
+            clearInterval(votingInterval);
+            timerDiv.textContent = 'Voting ended - random selection if no vote cast';
+        }
+    }, 1000);
+    
     if (data.incorrect_players.length === 0) {
-        votingOptions.innerHTML = '<p>No players available to vote for.</p>';
+        votingOptions.innerHTML += '<p>No players available to vote for.</p>';
     } else {
         data.incorrect_players.forEach(player => {
             const button = document.createElement('button');
             button.className = 'btn';
             button.textContent = player.name;
-            button.onclick = () => votePlayer(player.sid);
+            button.onclick = () => {
+                votePlayer(player.sid);
+                clearInterval(votingInterval);
+            };
             votingOptions.appendChild(button);
         });
     }
@@ -222,7 +245,11 @@ socket.on('vote_failed', function(data) {
 });
 
 socket.on('points_received', function(data) {
-    alert(`You received ${data.points} points this round!`);
+    if (data.points > 0) {
+        alert(`You received ${data.points} points this round!`);
+    } else {
+        alert('You received no points this round.');
+    }
 });
 
 socket.on('player_eliminated', function(data) {

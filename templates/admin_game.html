@@ -98,8 +98,16 @@ socket.on('game_stopped', function(data) {
     alert(data.message);
 });
 
+
+
+socket.on('voting_update', function(data) {
+    document.getElementById('votingStatus').innerHTML = 
+        `<p>Votes cast: ${data.votes_cast}/${data.total_voters}</p>
+         <p>Waiting for ${data.total_voters - data.votes_cast} more votes...</p>`;
+});
+
 socket.on('admin_question_summary', function(data) {
-    console.log('Question summary:', data);
+    console.log('Final question summary:', data);
     
     document.getElementById('correctPlayersList').innerHTML = 
         '<h4>Correct Players:</h4>' + 
@@ -109,19 +117,24 @@ socket.on('admin_question_summary', function(data) {
         '<h4>Incorrect Players:</h4>' + 
         data.incorrect_players.map(p => p.name).join(', ');
     
-    let scoresHtml = '<h4>Current Scores:</h4>';
+    // Show points awarded this round
+    let pointsHtml = '<h4>Points Awarded This Round:</h4>';
+    Object.entries(data.points_awarded || {}).forEach(([sid, points]) => {
+        const playerName = Object.values(data.all_scores).find((name, idx) => 
+            Object.keys(data.all_scores)[idx] === name);
+        pointsHtml += `<p>Player: ${points} points</p>`;
+    });
+    
+    let scoresHtml = '<h4>Current Total Scores:</h4>';
     Object.entries(data.all_scores).forEach(([name, score]) => {
         scoresHtml += `<p>${name}: ${score} points</p>`;
     });
+    
+    document.getElementById('votingStatus').innerHTML = pointsHtml;
     document.getElementById('currentScores').innerHTML = scoresHtml;
     
     document.getElementById('questionSummary').style.display = 'block';
     document.getElementById('nextQuestionBtn').style.display = 'inline-block';
-});
-
-socket.on('voting_update', function(data) {
-    document.getElementById('votingStatus').innerHTML = 
-        `<p>Votes cast: ${data.votes_cast}</p>`;
 });
 
 socket.on('connect', function() {
