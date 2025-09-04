@@ -339,14 +339,19 @@ def handle_join_game(data):
         emit('error', {'message': 'Game is full'})
         return
     
-    print(f"Player {player_name} joining room {game_id}", flush=True)
-    join_room(game_id)
-    game.players[request.sid] = {
-        'name': player_name,
-        'score': 0,
-        'eliminated': False,
-        'readonly': False
-    }
+    # Check if player already exists (prevent duplicates)
+    if request.sid in game.players:
+        print(f"Player {player_name} already in game, updating info", flush=True)
+        game.players[request.sid]['name'] = player_name
+    else:
+        print(f"Player {player_name} joining room {game_id}", flush=True)
+        join_room(game_id)
+        game.players[request.sid] = {
+            'name': player_name,
+            'score': 0,
+            'eliminated': False,
+            'readonly': False
+        }
     
     print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
     emit('joined_game', {'player_name': player_name})
@@ -470,8 +475,15 @@ def start_question(game_id):
     question = game.questions[question_idx]
     print(f"Question data: {question}", flush=True)
     
+    # Reset question state
     game.question_start_time = time.time()
     game.answers = {}
+    game.voting_active = False
+    
+    # Cancel any existing timers
+    if game_id in game_timers:
+        game_timers[game_id].cancel()
+        del game_timers[game_id]
     
     question_data = {
         'round': game.current_round,
@@ -485,8 +497,15 @@ def start_question(game_id):
         }
     }
     
-    print(f"Sending question data: {question_data}", flush=True)
+    print(f"Sending question data to room {game_id}: {question_data}", flush=True)
+    print(f"Players in game: {[p['name'] for p in game.players.values()]}", flush=True)
+    
+    # Send to all players in the room
     socketio.emit('new_question', question_data, room=game_id)
+    
+    # Also send directly to each player to ensure delivery
+    for player_sid in game.players.keys():
+        socketio.emit('new_question', question_data, room=player_sid)
     
     # Start 30-second timer
     timer = threading.Timer(30.0, question_timeout, [game_id])
@@ -719,11 +738,15 @@ def end_voting(game_id):
 @socketio.on('next_question')
 def handle_next_question(data):
     game_id = data['game_id']
+    print(f"Admin requesting next question for game {game_id}", flush=True)
+    
     if game_id not in games:
+        print(f"Game {game_id} not found", flush=True)
         return
     
     game = games[game_id]
     if game.admin_sid != request.sid:
+        print(f"Unauthorized next question request", flush=True)
         return
     
     # Reset voting state
@@ -731,8 +754,17 @@ def handle_next_question(data):
     game.votes_cast = {}
     game.points_awarded = {}
     
+    # Clear previous answers
+    game.answers = {}
+    
     game.current_question += 1
-    start_question(game_id)
+    print(f"Moving to question {game.current_question} in round {game.current_round}", flush=True)
+    
+    # Check if round is complete
+    if game.current_question >= 15:
+        end_round(game_id)
+    else:
+        start_question(game_id)
 
 def next_question(game_id):
     if game_id not in games:

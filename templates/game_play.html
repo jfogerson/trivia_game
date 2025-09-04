@@ -78,9 +78,16 @@ socket.on('disconnect', function() {
 
 socket.on('new_question', function(data) {
     console.log('Received new question:', data);
+    console.log('Current game state - Round:', data.round, 'Question:', data.question_num);
+    
     currentQuestion = data;
     selectedAnswer = null;
     timeLeft = 30;
+    
+    // Clear any existing timer
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
     
     document.getElementById('roundInfo').textContent = `Round ${data.round} - Question ${data.question_num}/15`;
     document.getElementById('questionText').textContent = data.question;
@@ -96,11 +103,19 @@ socket.on('new_question', function(data) {
         optionsArea.appendChild(option);
     });
     
+    // Reset UI state
     document.getElementById('questionArea').style.display = 'block';
     document.getElementById('resultArea').style.display = 'none';
     document.getElementById('votingArea').style.display = 'none';
     document.getElementById('submitBtn').disabled = true;
     
+    // Reset option styles
+    document.querySelectorAll('.option').forEach(opt => {
+        opt.classList.remove('selected', 'correct', 'incorrect');
+        opt.style.pointerEvents = 'auto';
+    });
+    
+    console.log('Question UI updated, starting timer');
     startTimer();
 });
 
