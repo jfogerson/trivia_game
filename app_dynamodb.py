@@ -70,7 +70,7 @@ def init_dynamodb():
     admins_table = dynamodb.Table('trivia_admins')
     try:
         admins_table.put_item(
-            Item={'username': 'admin', 'password': hashlib.sha256('admin123'.encode()).hexdigest()},
+            Item={'username': 'james', 'password': hashlib.sha256('pango123'.encode()).hexdigest()},
             ConditionExpression='attribute_not_exists(username)'
         )
     except:
