@@ -272,6 +272,47 @@ def create_game():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/admin/delete_game', methods=['POST'])
+def delete_game():
+    if 'admin' not in session:
+        return jsonify({'success': False, 'error': 'Not authenticated'})
+    
+    try:
+        game_id = request.json['game_id']
+        print(f"Deleting game {game_id}", flush=True)
+        
+        # Remove from DynamoDB
+        games_table = dynamodb.Table('trivia_games')
+        games_table.delete_item(Key={'id': game_id})
+        print(f"Game {game_id} deleted from database", flush=True)
+        
+        # Notify players and remove from memory
+        if game_id in games:
+            game = games[game_id]
+            print(f"Notifying {len(game.players)} players that game is cancelled", flush=True)
+            
+            # Notify all players that game is cancelled
+            socketio.emit('game_cancelled', {'message': 'Game has been cancelled by administrator'}, room=game_id)
+            
+            # Remove all players from the room
+            for player_sid in list(game.players.keys()):
+                socketio.server.leave_room(player_sid, game_id)
+            
+            # Cancel any active timers
+            if game_id in game_timers:
+                game_timers[game_id].cancel()
+                del game_timers[game_id]
+            
+            # Remove from memory
+            del games[game_id]
+            print(f"Game {game_id} removed from memory", flush=True)
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"ERROR deleting game: {str(e)}", flush=True)
+        return jsonify({'success': False, 'error': str(e)})
+
 @socketio.on('join_game')
 def handle_join_game(data):
     game_id = data['game_id']
@@ -336,6 +377,34 @@ def handle_get_players(data):
         game = games[game_id]
         player_list = list(game.players.values())
         emit('player_joined', {'players': player_list})
+
+@socketio.on('stop_game')
+def handle_stop_game(data):
+    game_id = data['game_id']
+    print(f"Stopping game {game_id}", flush=True)
+    
+    if game_id not in games:
+        return
+    
+    game = games[game_id]
+    if game.admin_sid != request.sid:
+        return
+    
+    # Cancel any active timers
+    if game_id in game_timers:
+        game_timers[game_id].cancel()
+        del game_timers[game_id]
+    
+    # Notify all players
+    socketio.emit('game_stopped', {'message': 'Game has been stopped by administrator'}, room=game_id)
+    
+    # Reset game state
+    game.status = 'waiting'
+    game.current_round = 0
+    game.current_question = 0
+    game.questions = []
+    
+    print(f"Game {game_id} stopped and reset", flush=True)
 
 @socketio.on('start_game')
 def handle_start_game(data):
