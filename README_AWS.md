@@ -48,12 +48,17 @@ The trivia game now supports both AWS RDS (PostgreSQL) and DynamoDB backends.
    python3 setup_dynamodb.py
    ```
 
-3. **Set AWS region** (optional):
+3. **Setup question database**:
    ```bash
-   export AWS_REGION="us-east-1"
+   python3 setup_questions.py
    ```
 
-4. **Run the DynamoDB version**:
+4. **Set AWS region** (optional):
+   ```bash
+   export AWS_REGION="us-west-2"
+   ```
+
+5. **Run the DynamoDB version**:
    ```bash
    python3 app_dynamodb.py
    ```
@@ -141,6 +146,29 @@ The trivia game now supports both AWS RDS (PostgreSQL) and DynamoDB backends.
 4. **Implement least privilege** access policies
 5. **Rotate credentials** regularly
 6. **Enable CloudTrail** for audit logging
+
+## Question Database Management
+
+### DynamoDB Tables Created:
+- **`trivia_questions_source`** - Master question repository (45+ questions)
+- **`trivia_questions`** - Runtime questions used by the game
+- **`trivia_admins`** - Administrator credentials
+- **`trivia_games`** - Game configurations
+
+### Question Categories:
+- Geography (capitals, countries, landmarks)
+- Science (chemistry, physics, biology)
+- History (wars, inventions, dates)
+- Literature (authors, books)
+- General knowledge
+
+### Adding New Questions:
+1. **Add questions** to `trivia_questions_source` table via AWS Console
+2. **Run setup script** to copy to game table:
+   ```bash
+   python3 setup_questions.py
+   ```
+3. **Questions automatically available** in new games
 
 ## Monitoring
 

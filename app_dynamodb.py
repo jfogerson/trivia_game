@@ -76,32 +76,57 @@ def init_dynamodb():
     except:
         pass
     
-    # Insert sample questions
-    questions_table = dynamodb.Table('trivia_questions')
-    sample_questions = [
-        ("What is the capital of France?", "London", "Berlin", "Paris", "Madrid", "c"),
-        ("Which planet is closest to the Sun?", "Venus", "Mercury", "Earth", "Mars", "b"),
-        ("What is 2 + 2?", "3", "4", "5", "6", "b"),
-        ("Who painted the Mona Lisa?", "Van Gogh", "Picasso", "Da Vinci", "Monet", "c"),
-        ("What is the largest ocean?", "Atlantic", "Indian", "Arctic", "Pacific", "d")
-    ] * 9
-    
-    for i, q in enumerate(sample_questions):
-        try:
-            questions_table.put_item(
-                Item={
-                    'id': str(i+1),
-                    'question': q[0],
-                    'option_a': q[1],
-                    'option_b': q[2],
-                    'option_c': q[3],
-                    'option_d': q[4],
-                    'correct_answer': q[5]
-                },
-                ConditionExpression='attribute_not_exists(id)'
-            )
-        except:
-            pass
+    # Copy questions from source table if it exists
+    try:
+        source_table = dynamodb.Table('trivia_questions_source')
+        questions_table = dynamodb.Table('trivia_questions')
+        
+        # Check if source table has questions
+        source_response = source_table.scan(Limit=1)
+        if source_response['Items']:
+            print("Copying questions from source table", flush=True)
+            
+            # Get all questions from source
+            response = source_table.scan()
+            source_questions = response['Items']
+            
+            # Copy to game table (only if game table is empty)
+            game_response = questions_table.scan(Limit=1)
+            if not game_response['Items']:
+                for question in source_questions:
+                    questions_table.put_item(Item=question)
+                print(f"Copied {len(source_questions)} questions to game table", flush=True)
+            else:
+                print("Game table already has questions", flush=True)
+        else:
+            print("Source table is empty, using default questions", flush=True)
+            # Fallback to basic questions if source is empty
+            basic_questions = [
+                ("What is the capital of France?", "London", "Berlin", "Paris", "Madrid", "c"),
+                ("Which planet is closest to the Sun?", "Venus", "Mercury", "Earth", "Mars", "b"),
+                ("What is 2 + 2?", "3", "4", "5", "6", "b")
+            ] * 15
+            
+            for i, q in enumerate(basic_questions):
+                try:
+                    questions_table.put_item(
+                        Item={
+                            'id': str(i+1),
+                            'question': q[0],
+                            'option_a': q[1],
+                            'option_b': q[2],
+                            'option_c': q[3],
+                            'option_d': q[4],
+                            'correct_answer': q[5]
+                        },
+                        ConditionExpression='attribute_not_exists(id)'
+                    )
+                except:
+                    pass
+                    
+    except Exception as e:
+        print(f"Error copying questions: {e}", flush=True)
+        print("Using fallback questions", flush=True)
 
 class GameState:
     def __init__(self, game_id, name, password):

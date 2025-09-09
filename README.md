@@ -69,6 +69,7 @@ aws configure
 ```bash
 # For DynamoDB (Recommended)
 python3 setup_dynamodb.py
+python3 setup_questions.py
 
 # OR for RDS (if preferred)
 python3 setup_rds.py
@@ -164,6 +165,7 @@ trivia_game/
 ├── requirements.txt         # Python dependencies
 ├── setup_rds.py            # RDS setup script
 ├── setup_dynamodb.py       # DynamoDB setup script
+├── setup_questions.py      # Question database setup
 ├── admin_game.html         # Admin control panel
 ├── README.md               # Basic documentation
 ├── README_AWS.md           # AWS setup guide
@@ -178,8 +180,13 @@ trivia_game/
 
 ## Database Schema
 
-- **admins**: Admin user credentials
-- **questions**: Trivia questions with 4 options
-- **game_configs**: Game configurations and passwords
+### DynamoDB Tables:
+- **`trivia_admins`**: Admin user credentials
+- **`trivia_questions`**: Runtime trivia questions (45+ questions)
+- **`trivia_questions_source`**: Master question repository
+- **`trivia_games`**: Game configurations and passwords
 
-The system automatically creates sample questions and a default admin user on first run."# trivia_game" 
+### Question Categories:
+- Geography, Science, History, Literature, General Knowledge
+
+The system automatically creates comprehensive questions and a default admin user on first run."# trivia_game" 
