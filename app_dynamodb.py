@@ -395,11 +395,11 @@ def handle_admin_join(data):
         join_room(game_id)
         emit('admin_joined')
         
-        # Send current player list to admin
+        # Send current player list to admin only
         game = games[game_id]
         player_list = list(game.players.values())
         print(f"Sending {len(player_list)} players to admin", flush=True)
-        emit('player_joined', {'players': player_list})
+        emit('admin_player_list', {'players': player_list})
     else:
         print(f"Game {game_id} not found in memory", flush=True)
         emit('error', {'message': 'Game not found'})
@@ -410,7 +410,7 @@ def handle_get_players(data):
     if game_id in games:
         game = games[game_id]
         player_list = list(game.players.values())
-        emit('player_joined', {'players': player_list})
+        emit('admin_player_list', {'players': player_list})
 
 @socketio.on('stop_game')
 def handle_stop_game(data):

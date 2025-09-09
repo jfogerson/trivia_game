@@ -84,6 +84,28 @@ socket.on('player_joined', function(data) {
     });
 });
 
+socket.on('admin_player_list', function(data) {
+    console.log('Admin player list:', data);
+    document.getElementById('playerCount').textContent = data.players.length;
+    
+    const playersList = document.getElementById('playersList');
+    playersList.innerHTML = '';
+    
+    data.players.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'player';
+        if (player.eliminated) div.classList.add('eliminated');
+        
+        div.innerHTML = `
+            <strong>${player.name}</strong><br>
+            Score: ${player.score}<br>
+            ${player.eliminated ? '<em>Eliminated</em>' : ''}
+            ${player.readonly ? '<em>Read-only</em>' : ''}
+        `;
+        playersList.appendChild(div);
+    });
+});
+
 socket.on('game_started', function() {
     document.getElementById('status').textContent = 'Playing';
     document.getElementById('startGameBtn').disabled = true;
@@ -152,6 +174,8 @@ socket.on('error', function(data) {
 
 socket.on('player_eliminated', function(data) {
     alert(`${data.name} has been eliminated!`);
+    // Request updated player list
+    socket.emit('get_players', { game_id: gameId });
 });
 </script>
 {% endblock %}
