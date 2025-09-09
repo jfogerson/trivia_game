@@ -365,7 +365,8 @@ def handle_join_game(data):
         return
     
     # Check if player already exists (prevent duplicates)
-    if request.sid in game.players:
+    player_exists = request.sid in game.players
+    if player_exists:
         print(f"Player {player_name} already in game, updating info", flush=True)
         game.players[request.sid]['name'] = player_name
     else:
@@ -380,7 +381,10 @@ def handle_join_game(data):
     
     print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
     emit('joined_game', {'player_name': player_name})
-    socketio.emit('player_joined', {'players': list(game.players.values())}, room=game_id)
+    
+    # Only emit player list update if this is a new player
+    if not player_exists:
+        socketio.emit('player_joined', {'players': list(game.players.values())}, room=game_id)
 
 @socketio.on('admin_join')
 def handle_admin_join(data):
@@ -552,6 +556,10 @@ def handle_submit_answer(data):
     if not player or player['eliminated'] or player['readonly']:
         return
     
+    # Prevent duplicate answers
+    if request.sid in game.answers:
+        return
+    
     game.answers[request.sid] = answer
     print(f"Player {player['name']} submitted answer. Total answers: {len(game.answers)}", flush=True)
     
@@ -564,6 +572,8 @@ def handle_submit_answer(data):
         if game_id in game_timers:
             game_timers[game_id].cancel()
             del game_timers[game_id]
+        # Emit timer stop to all players
+        socketio.emit('timer_stop', room=game_id)
         question_timeout(game_id)
 
 def question_timeout(game_id):

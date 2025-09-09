@@ -317,5 +317,13 @@ socket.on('close_tab', function(data) {
     alert(data.message);
     window.close();
 });
+
+socket.on('timer_stop', function() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        document.getElementById('timer').textContent = 'All answered!';
+    }
+});
 </script>
 {% endblock %}
