@@ -670,6 +670,13 @@ def voting_timeout(game_id):
                     game.players[random_target]['readonly'] = True
                 
                 print(f"Random vote: {correct_player['name']} -> {game.players[random_target]['name']}", flush=True)
+                
+                # Send notification to voter about random selection
+                socketio.emit('vote_recorded', {
+                    'target': game.players[random_target]['name'], 
+                    'points': 1,
+                    'auto_selected': True
+                }, room=correct_player['sid'])
     
     end_voting_phase(game_id)
 
@@ -680,12 +687,32 @@ def end_voting_phase(game_id):
     game = games[game_id]
     game.voting_active = False
     
-    # Send points received to incorrect players
+    # Send points received to incorrect players with voter names
     for incorrect_player in game.incorrect_players:
-        points_this_round = game.points_awarded.get(incorrect_player['sid'], 0)
+        target_sid = incorrect_player['sid']
+        points_this_round = game.points_awarded.get(target_sid, 0)
+        
+        # Find who voted for this player
+        voters = []
+        for voter_sid, voted_for_sid in game.votes_cast.items():
+            if voted_for_sid == target_sid:
+                voter_name = game.players[voter_sid]['name']
+                voters.append(voter_name)
+        
+        if points_this_round > 0:
+            if len(voters) == 1:
+                message = f"You received {points_this_round} point from {voters[0]}!"
+            else:
+                voter_list = ', '.join(voters[:-1]) + f" and {voters[-1]}"
+                message = f"You received {points_this_round} points from {voter_list}!"
+        else:
+            message = "You received no points this round."
+        
         socketio.emit('points_received', {
-            'points': points_this_round
-        }, room=incorrect_player['sid'])
+            'points': points_this_round,
+            'message': message,
+            'voters': voters
+        }, room=target_sid)
     
     # Send final admin summary
     if game.admin_sid:

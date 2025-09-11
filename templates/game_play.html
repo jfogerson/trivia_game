@@ -235,7 +235,11 @@ function votePlayer(targetSid) {
 }
 
 socket.on('vote_recorded', function(data) {
-    alert(`You voted for ${data.target} (+${data.points} points)`);
+    if (data.auto_selected) {
+        alert(`Time expired! Automatically voted for ${data.target} (+${data.points} point)`);
+    } else {
+        alert(`You voted for ${data.target} (+${data.points} point)`);
+    }
     document.getElementById('votingArea').style.display = 'none';
 });
 
@@ -260,11 +264,7 @@ socket.on('vote_failed', function(data) {
 });
 
 socket.on('points_received', function(data) {
-    if (data.points > 0) {
-        alert(`You received ${data.points} points this round!`);
-    } else {
-        alert('You received no points this round.');
-    }
+    alert(data.message);
 });
 
 socket.on('player_eliminated', function(data) {
