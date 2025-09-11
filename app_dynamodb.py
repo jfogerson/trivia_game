@@ -382,8 +382,8 @@ def handle_join_game(data):
     print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
     emit('joined_game', {'player_name': player_name})
     
-    # Only emit player list update if this is a new player
-    if not player_exists:
+    # Only emit player list update if this is a new player and game hasn't started
+    if not player_exists and game.status == 'waiting':
         socketio.emit('player_joined', {'players': list(game.players.values())}, room=game_id)
 
 @socketio.on('admin_join')
@@ -475,7 +475,6 @@ def handle_start_game(data):
     game.current_question = 0
     
     print(f"Emitting game_started to room {game_id}", flush=True)
-    print(f"Players in room: {[p['name'] for p in game.players.values()]}", flush=True)
     socketio.emit('game_started', room=game_id)
     
     # Start first question after a short delay
