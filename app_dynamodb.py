@@ -534,10 +534,6 @@ def start_question(game_id):
     # Send to all players in the room
     socketio.emit('new_question', question_data, room=game_id)
     
-    # Also send directly to each player to ensure delivery
-    for player_sid in game.players.keys():
-        socketio.emit('new_question', question_data, room=player_sid)
-    
     # Start 30-second timer
     timer = threading.Timer(30.0, question_timeout, [game_id])
     game_timers[game_id] = timer
@@ -565,19 +561,22 @@ def handle_submit_answer(data):
     game.answers[request.sid] = answer
     print(f"Player {player['name']} submitted answer. Total answers: {len(game.answers)}", flush=True)
     
-    # Check if all active players answered
-    active_players = [p for p in game.players.values() if not p['eliminated']]
-    total_active_players = len(active_players)
-    print(f"Active players: {total_active_players}, Answers received: {len(game.answers)}", flush=True)
+    # Wait 2 seconds after each answer to see if more come in
+    # If no more answers after 2 seconds, assume all active players have answered
+    if game_id in game_timers:
+        game_timers[game_id].cancel()
     
-    if len(game.answers) >= total_active_players:
-        print(f"All active players answered, stopping timer", flush=True)
-        if game_id in game_timers:
-            game_timers[game_id].cancel()
-            del game_timers[game_id]
-        # Emit timer stop to all players
-        socketio.emit('timer_stop', room=game_id)
-        question_timeout(game_id)
+    def check_all_answered():
+        if game_id in games and len(games[game_id].answers) == len(game.answers):
+            print(f"No new answers in 2 seconds, assuming all active players answered", flush=True)
+            if game_id in game_timers:
+                del game_timers[game_id]
+            socketio.emit('timer_stop', room=game_id)
+            question_timeout(game_id)
+    
+    timer = threading.Timer(2.0, check_all_answered)
+    game_timers[game_id] = timer
+    timer.start()
 
 def question_timeout(game_id):
     if game_id not in games:
@@ -884,6 +883,28 @@ def end_game(game_id):
     }, room=game_id)
     
     print(f"Game {game_id} ended. Winner: {winner['name'] if winner else 'No winner'}", flush=True)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"Player disconnected: {request.sid}", flush=True)
+    
+    # Remove player from all games
+    for game_id, game in games.items():
+        if request.sid in game.players:
+            player_name = game.players[request.sid]['name']
+            print(f"Removing {player_name} from game {game_id}", flush=True)
+            del game.players[request.sid]
+            
+            # If this was during a question and all remaining connected players have answered, end the question
+            if hasattr(game, 'answers') and game.status == 'playing':
+                connected_active_sids = [sid for sid, p in game.players.items() if not p['eliminated'] and sid in socketio.server.manager.rooms.get('/', {}).get(game_id, set())]
+                if len(game.answers) >= len(connected_active_sids) and len(connected_active_sids) > 0:
+                    if game_id in game_timers:
+                        game_timers[game_id].cancel()
+                        del game_timers[game_id]
+                    socketio.emit('timer_stop', room=game_id)
+                    question_timeout(game_id)
+            break
 
 if __name__ == '__main__':
     print("Initializing DynamoDB...", flush=True)
