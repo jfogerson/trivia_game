@@ -487,6 +487,13 @@ def start_question(game_id):
         return
     
     game = games[game_id]
+    
+    # Check if only one player remains active before starting question
+    active_players = [p for p in game.players.values() if not p['eliminated']]
+    if len(active_players) <= 1:
+        end_game(game_id)
+        return
+    
     print(f"Starting question for game {game_id}, round {game.current_round}, question {game.current_question}", flush=True)
     
     if game.current_question >= 15:
@@ -494,12 +501,8 @@ def start_question(game_id):
         end_round(game_id)
         return
     
-    question_idx = (game.current_round - 1) * 15 + game.current_question
-    if question_idx >= len(game.questions):
-        print(f"No more questions, ending game", flush=True)
-        end_game(game_id)
-        return
-    
+    # Use modulo to cycle through questions if we run out
+    question_idx = ((game.current_round - 1) * 15 + game.current_question) % len(game.questions)
     question = game.questions[question_idx]
     print(f"Question data: {question}", flush=True)
     
@@ -526,7 +529,7 @@ def start_question(game_id):
     }
     
     print(f"Sending question data to room {game_id}: {question_data}", flush=True)
-    print(f"Players in game: {[p['name'] for p in game.players.values()]}", flush=True)
+    print(f"Active players: {[p['name'] for p in game.players.values() if not p['eliminated']]}", flush=True)
     
     # Send to all players in the room
     socketio.emit('new_question', question_data, room=game_id)
@@ -713,6 +716,12 @@ def end_voting_phase(game_id):
             'voters': voters
         }, room=target_sid)
     
+    # Check if only one player remains active
+    active_players = [p for p in game.players.values() if not p['eliminated']]
+    if len(active_players) <= 1:
+        end_game(game_id)
+        return
+    
     # Send final admin summary
     if game.admin_sid:
         admin_summary = {
@@ -842,10 +851,13 @@ def end_round(game_id):
     
     game = games[game_id]
     
-    if game.current_round >= 3:
+    # Check if only one player remains active
+    active_players = [p for p in game.players.values() if not p['eliminated']]
+    if len(active_players) <= 1:
         end_game(game_id)
         return
     
+    # Continue to next round if more than one player remains
     game.current_round += 1
     game.current_question = 0
     
@@ -857,10 +869,20 @@ def end_game(game_id):
         return
     
     game = games[game_id]
+    
+    # Find the winner (last remaining active player)
+    active_players = [p for p in game.players.values() if not p['eliminated']]
+    winner = active_players[0] if active_players else None
+    
     final_scores = [(p['name'], p['score']) for p in game.players.values()]
     final_scores.sort(key=lambda x: x[1])
     
-    socketio.emit('game_ended', {'final_scores': final_scores}, room=game_id)
+    socketio.emit('game_ended', {
+        'final_scores': final_scores,
+        'winner': winner['name'] if winner else 'No winner'
+    }, room=game_id)
+    
+    print(f"Game {game_id} ended. Winner: {winner['name'] if winner else 'No winner'}", flush=True)
 
 if __name__ == '__main__':
     print("Initializing DynamoDB...", flush=True)

@@ -269,10 +269,21 @@ socket.on('points_received', function(data) {
 
 socket.on('player_eliminated', function(data) {
     alert(`${data.name} has been eliminated from the game!`);
+    
+    // Update scores display to show elimination
+    const scoresList = document.getElementById('scoresList');
+    const playerDivs = scoresList.children;
+    for (let div of playerDivs) {
+        if (div.innerHTML.includes(data.name)) {
+            div.style.color = '#999';
+            div.style.textDecoration = 'line-through';
+            break;
+        }
+    }
 });
 
 socket.on('round_ended', function(data) {
-    alert(`Round ended! Starting Round ${data.next_round}...`);
+    alert(`Round ${data.next_round - 1} ended! Starting Round ${data.next_round}...`);
 });
 
 socket.on('game_ended', function(data) {
@@ -281,7 +292,7 @@ socket.on('game_ended', function(data) {
     document.getElementById('votingArea').style.display = 'none';
     
     const finalScores = document.getElementById('finalScores');
-    finalScores.innerHTML = '<h3>Final Rankings:</h3>';
+    finalScores.innerHTML = `<h3>🏆 Winner: ${data.winner}!</h3><h3>Final Rankings:</h3>`;
     
     data.final_scores.forEach((score, index) => {
         const div = document.createElement('div');
@@ -299,6 +310,10 @@ socket.on('player_joined', function(data) {
     data.players.forEach(player => {
         const div = document.createElement('div');
         div.innerHTML = `${player.name}: ${player.score} points ${player.eliminated ? '(Eliminated)' : ''}`;
+        if (player.eliminated) {
+            div.style.color = '#999';
+            div.style.textDecoration = 'line-through';
+        }
         scoresList.appendChild(div);
     });
 });
