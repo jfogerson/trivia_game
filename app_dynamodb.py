@@ -565,11 +565,11 @@ def handle_submit_answer(data):
     game.answers[request.sid] = answer
     print(f"Player {player['name']} submitted answer. Total answers: {len(game.answers)}", flush=True)
     
-    # Check if all active players answered
-    active_players = [sid for sid, p in game.players.items() if not p['eliminated'] and not p['readonly']]
-    print(f"Active players: {len(active_players)}, Answers received: {len(game.answers)}", flush=True)
+    # Check if all players answered
+    total_players = len(game.players)
+    print(f"Total players: {total_players}, Answers received: {len(game.answers)}", flush=True)
     
-    if len(game.answers) >= len(active_players):
+    if len(game.answers) >= total_players:
         print(f"All players answered, stopping timer", flush=True)
         if game_id in game_timers:
             game_timers[game_id].cancel()
