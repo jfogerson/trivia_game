@@ -561,33 +561,23 @@ def handle_submit_answer(data):
     game.answers[request.sid] = answer
     print(f"Player {player['name']} submitted answer. Total answers: {len(game.answers)}", flush=True)
     
-    # If this is the first answer, wait 5 seconds minimum before ending
-    if len(game.answers) == 1:
-        def end_early():
-            if game_id in games:
-                print(f"5 seconds passed, ending question early", flush=True)
-                if game_id in game_timers:
-                    game_timers[game_id].cancel()
-                    del game_timers[game_id]
-                socketio.emit('timer_stop', room=game_id)
-                question_timeout(game_id)
-        
-        early_timer = threading.Timer(5.0, end_early)
-        game_timers[f"{game_id}_early"] = early_timer
-        early_timer.start()
+    # Check if ALL active players have answered
+    active_players = [sid for sid, p in game.players.items() if not p['eliminated']]
+    print(f"Active players: {len(active_players)}, Answers received: {len(game.answers)}", flush=True)
+    
+    if len(game.answers) >= len(active_players):
+        print(f"All active players answered, stopping timer", flush=True)
+        if game_id in game_timers:
+            game_timers[game_id].cancel()
+            del game_timers[game_id]
+        socketio.emit('timer_stop', room=game_id)
+        question_timeout(game_id)
 
 def question_timeout(game_id):
     if game_id not in games:
         return
     
     game = games[game_id]
-    
-    # Clean up any early timers
-    early_timer_key = f"{game_id}_early"
-    if early_timer_key in game_timers:
-        game_timers[early_timer_key].cancel()
-        del game_timers[early_timer_key]
-    
     question_idx = (game.current_round - 1) * 15 + game.current_question
     correct_answer = game.questions[question_idx]['correct_answer']
     
