@@ -364,6 +364,13 @@ def handle_join_game(data):
         emit('error', {'message': 'Game is full'})
         return
     
+    # Check for duplicate names
+    existing_names = [p['name'].lower() for p in game.players.values() if p['name']]
+    if player_name.lower() in existing_names:
+        print(f"Name {player_name} already taken in game {game_id}", flush=True)
+        emit('error', {'message': 'Name already taken. Please choose a different name.'})
+        return
+    
     # Check if player already exists (prevent duplicates)
     player_exists = request.sid in game.players
     if player_exists:
@@ -638,44 +645,30 @@ def voting_timeout(game_id):
         return
     
     game = games[game_id]
-    print(f"Voting timeout - assigning random votes", flush=True)
+    print(f"Voting timeout - no random votes assigned", flush=True)
     
-    # Assign random votes for players who didn't vote
-    import random
+    # Don't assign random votes - players must choose manually
+    # Only end voting phase if all players have voted or no valid targets remain
     
-    for correct_player in game.correct_players:
-        if correct_player['sid'] not in game.votes_cast:
-            # Find available targets
-            available_targets = []
-            for incorrect_player in game.incorrect_players:
-                target_sid = incorrect_player['sid']
-                current_round_points = game.points_awarded.get(target_sid, 0)
-                total_score = game.players[target_sid]['score']
-                
-                if current_round_points < 4 and total_score < 10:
-                    available_targets.append(target_sid)
-            
-            if available_targets:
-                random_target = random.choice(available_targets)
-                game.votes_cast[correct_player['sid']] = random_target
-                game.points_awarded[random_target] = game.points_awarded.get(random_target, 0) + 1
-                game.players[random_target]['score'] += 1
-                
-                # Check for elimination
-                if game.players[random_target]['score'] >= 10:
-                    game.players[random_target]['eliminated'] = True
-                    game.players[random_target]['readonly'] = True
-                
-                print(f"Random vote: {correct_player['name']} -> {game.players[random_target]['name']}", flush=True)
-                
-                # Send notification to voter about random selection
-                socketio.emit('vote_recorded', {
-                    'target': game.players[random_target]['name'], 
-                    'points': 1,
-                    'auto_selected': True
-                }, room=correct_player['sid'])
+    # Check if there are still available targets
+    available_targets = []
+    for incorrect_player in game.incorrect_players:
+        target_sid = incorrect_player['sid']
+        current_round_points = game.points_awarded.get(target_sid, 0)
+        total_score = game.players[target_sid]['score']
+        
+        if current_round_points < 4 and total_score < 10:
+            available_targets.append(target_sid)
     
-    end_voting_phase(game_id)
+    # If no targets available or all players voted, end voting
+    if not available_targets or len(game.votes_cast) >= len(game.correct_players):
+        end_voting_phase(game_id)
+    else:
+        # Extend timer for players who haven't voted
+        timer = threading.Timer(15.0, voting_timeout, [game_id])
+        game_timers[game_id] = timer
+        timer.start()
+        print(f"Extended voting timer for 15 more seconds", flush=True)
 
 def end_voting_phase(game_id):
     if game_id not in games:
@@ -749,7 +742,7 @@ def handle_vote_player(data):
         emit('vote_failed', {'message': 'You have already voted'})
         return
     
-    # Check limits: max 4 points per round, max 10 total
+    # Check limits: max 4 points per round, max 10 total points
     round_points = game.points_awarded.get(target_sid, 0)
     if round_points >= 4 or target['score'] >= 10:
         # Send updated list without this player
@@ -766,10 +759,30 @@ def handle_vote_player(data):
         })
         return
     
-    # Record vote and award point
+    # Record vote and award points based on round
+    points_per_vote = game.current_round if game.current_round <= 3 else 1
     game.votes_cast[request.sid] = target_sid
-    game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + 1
-    target['score'] += 1
+    game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + points_per_vote
+    target['score'] += points_per_vote
+    
+    # Check if target now has 4 points this round - notify other voters to choose again
+    if game.points_awarded[target_sid] == 4:
+        for voter_sid in game.correct_players:
+            if (voter_sid['sid'] not in game.votes_cast and 
+                voter_sid['sid'] != request.sid):
+                # Send updated voting options without the maxed-out player
+                available_targets = []
+                for incorrect_player in game.incorrect_players:
+                    sid = incorrect_player['sid']
+                    if (game.points_awarded.get(sid, 0) < 4 and 
+                        game.players[sid]['score'] < 10):
+                        available_targets.append(incorrect_player)
+                
+                socketio.emit('voting_phase', {
+                    'incorrect_players': available_targets,
+                    'time_limit': 30,
+                    'message': f"{target['name']} has reached maximum points. Please choose another player."
+                }, room=voter_sid['sid'])
     
     # Check for elimination
     if target['score'] >= 10:
@@ -777,7 +790,7 @@ def handle_vote_player(data):
         target['readonly'] = True
         socketio.emit('player_eliminated', {'name': target['name']}, room=game_id)
     
-    emit('vote_recorded', {'target': target['name'], 'points': 1})
+    emit('vote_recorded', {'target': target['name'], 'points': points_per_vote})
     print(f"Vote recorded: {voter['name']} -> {target['name']}", flush=True)
     
     # Check if all correct players have voted
