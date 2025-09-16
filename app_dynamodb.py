@@ -513,10 +513,12 @@ def start_question(game_id):
     question = game.questions[question_idx]
     print(f"Question data: {question}", flush=True)
     
-    # Reset question state
+    # Reset question state completely
     game.question_start_time = time.time()
     game.answers = {}
     game.voting_active = False
+    game.votes_cast = {}
+    game.points_awarded = {}
     
     # Cancel any existing timers
     if game_id in game_timers:
@@ -538,7 +540,11 @@ def start_question(game_id):
     print(f"Sending question data to room {game_id}: {question_data}", flush=True)
     print(f"Active players: {[p['name'] for p in game.players.values() if not p['eliminated']]}", flush=True)
     
-    # Send to all players in the room
+    # Send to all players individually to ensure delivery
+    for player_sid in game.players.keys():
+        socketio.emit('new_question', question_data, room=player_sid)
+    
+    # Also send to room as backup
     socketio.emit('new_question', question_data, room=game_id)
     
     # Start 30-second timer
@@ -712,10 +718,16 @@ def end_voting_phase(game_id):
     
     # Send final admin summary
     if game.admin_sid:
+        # Create points awarded with player names
+        points_with_names = {}
+        for sid, points in game.points_awarded.items():
+            player_name = game.players[sid]['name']
+            points_with_names[player_name] = points
+        
         admin_summary = {
             'correct_players': game.correct_players,
             'incorrect_players': game.incorrect_players,
-            'points_awarded': game.points_awarded,
+            'points_awarded': points_with_names,
             'all_scores': {p['name']: p['score'] for p in game.players.values()}
         }
         socketio.emit('admin_question_summary', admin_summary, room=game.admin_sid)
@@ -743,8 +755,9 @@ def handle_vote_player(data):
         return
     
     # Check limits: max 4 points per round, max 10 total points
+    points_per_vote = game.current_round if game.current_round <= 3 else 1
     round_points = game.points_awarded.get(target_sid, 0)
-    if round_points >= 4 or target['score'] >= 10:
+    if round_points + points_per_vote > 4 or target['score'] >= 10:
         # Send updated list without this player
         available_targets = []
         for incorrect_player in game.incorrect_players:
