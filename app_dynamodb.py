@@ -588,11 +588,11 @@ def start_question(game_id):
     # Also send to room as backup
     socketio.emit('new_question', question_data, room=game_id)
     
-    # Start 30-second timer
-    timer = threading.Timer(30.0, question_timeout, [game_id])
+    # Start 15-second timer
+    timer = threading.Timer(15.0, question_timeout, [game_id])
     game_timers[game_id] = timer
     timer.start()
-    print(f"Question timer started for 30 seconds", flush=True)
+    print(f"Question timer started for 15 seconds", flush=True)
 
 @socketio.on('submit_answer')
 def handle_submit_answer(data):
