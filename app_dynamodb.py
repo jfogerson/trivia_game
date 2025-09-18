@@ -520,9 +520,6 @@ def start_question(game_id):
     game.votes_cast = {}
     game.points_awarded = {}
     
-    # Store the randomized correct answer
-    game.current_correct_answer = new_correct_position
-    
     # Cancel any existing timers
     if game_id in game_timers:
         game_timers[game_id].cancel()
@@ -559,6 +556,9 @@ def start_question(game_id):
         if i != correct_index:
             final_options[i] = other_options[other_index]
             other_index += 1
+    
+    # Store the randomized correct answer
+    game.current_correct_answer = new_correct_position
     
     question_data = {
         'round': game.current_round,
