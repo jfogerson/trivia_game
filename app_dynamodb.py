@@ -523,6 +523,7 @@ def start_question(game_id):
     game.voting_active = False
     game.votes_cast = {}
     game.points_awarded = {}
+    game.question_expired = False
     
     # Cancel any existing timers
     if game_id in game_timers:
@@ -607,6 +608,11 @@ def handle_submit_answer(data):
     if not player or player['eliminated'] or player['readonly']:
         return
     
+    # Check if question time has expired
+    if hasattr(game, 'question_expired') and game.question_expired:
+        emit('answer_rejected', {'message': 'Time expired, answer not accepted'})
+        return
+    
     # Prevent duplicate answers
     if request.sid in game.answers:
         return
@@ -631,6 +637,15 @@ def question_timeout(game_id):
         return
     
     game = games[game_id]
+    # Mark question as expired to prevent late answers
+    game.question_expired = True
+    
+    # Add incorrect answers for players who didn't answer
+    active_players = [sid for sid, p in game.players.items() if not p['eliminated']]
+    for player_sid in active_players:
+        if player_sid not in game.answers:
+            game.answers[player_sid] = 'no_answer'  # Mark as incorrect
+    
     # Get correct answer from the last question data sent
     correct_answer = getattr(game, 'current_correct_answer', 'a')
     
