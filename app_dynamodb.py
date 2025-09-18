@@ -520,21 +520,43 @@ def start_question(game_id):
     game.votes_cast = {}
     game.points_awarded = {}
     
+    # Store the randomized correct answer
+    game.current_correct_answer = new_correct_position
+    
     # Cancel any existing timers
     if game_id in game_timers:
         game_timers[game_id].cancel()
         del game_timers[game_id]
+    
+    # Randomize answer positions
+    import random
+    options = [
+        (question['option_a'], 'a'),
+        (question['option_b'], 'b'), 
+        (question['option_c'], 'c'),
+        (question['option_d'], 'd')
+    ]
+    random.shuffle(options)
+    
+    # Find which position the correct answer moved to
+    original_correct = question['correct_answer']
+    new_correct_position = None
+    for i, (text, original_pos) in enumerate(options):
+        if original_pos == original_correct:
+            new_correct_position = ['a', 'b', 'c', 'd'][i]
+            break
     
     question_data = {
         'round': game.current_round,
         'question_num': game.current_question + 1,
         'question': question['question'],
         'options': {
-            'a': question['option_a'],
-            'b': question['option_b'],
-            'c': question['option_c'],
-            'd': question['option_d']
-        }
+            'a': options[0][0],
+            'b': options[1][0],
+            'c': options[2][0],
+            'd': options[3][0]
+        },
+        'correct_answer': new_correct_position
     }
     
     print(f"Sending question data to room {game_id}: {question_data}", flush=True)
@@ -591,8 +613,8 @@ def question_timeout(game_id):
         return
     
     game = games[game_id]
-    question_idx = (game.current_round - 1) * 15 + game.current_question
-    correct_answer = game.questions[question_idx]['correct_answer']
+    # Get correct answer from the last question data sent
+    correct_answer = getattr(game, 'current_correct_answer', 'a')
     
     correct_players = []
     incorrect_players = []
