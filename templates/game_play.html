@@ -4,7 +4,7 @@
 <div id="gameHeader">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div id="roundInfo"></div>
-        <div id="timer" class="timer">30</div>
+        <div id="timer" class="timer">15</div>
         <div id="playerInfo"></div>
     </div>
 </div>
@@ -48,7 +48,7 @@ const gamePassword = urlParams.get('password') || sessionStorage.getItem('gamePa
 
 let currentQuestion = null;
 let selectedAnswer = null;
-let timeLeft = 30;
+let timeLeft = 15;
 let timerInterval = null;
 
 console.log('Connecting to game:', gameId, 'as player:', playerName);
@@ -82,7 +82,7 @@ socket.on('new_question', function(data) {
     
     currentQuestion = data;
     selectedAnswer = null;
-    timeLeft = 30;
+    timeLeft = 15;
     
     // Clear any existing timer
     if (timerInterval) {
