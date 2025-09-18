@@ -494,10 +494,14 @@ def start_question(game_id):
         return
     
     game = games[game_id]
+    print(f"Total players in game: {len(game.players)}", flush=True)
     
     # Check if only one player remains active before starting question
     active_players = [p for p in game.players.values() if not p['eliminated']]
+    print(f"Active players: {len(active_players)}", flush=True)
+    
     if len(active_players) <= 1:
+        print(f"Not enough active players ({len(active_players)}), ending game", flush=True)
         end_game(game_id)
         return
     
