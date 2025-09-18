@@ -528,33 +528,47 @@ def start_question(game_id):
         game_timers[game_id].cancel()
         del game_timers[game_id]
     
-    # Randomize answer positions
+    # Randomize correct answer position
     import random
-    options = [
-        (question['option_a'], 'a'),
-        (question['option_b'], 'b'), 
-        (question['option_c'], 'c'),
-        (question['option_d'], 'd')
-    ]
-    random.shuffle(options)
+    positions = ['a', 'b', 'c', 'd']
+    new_correct_position = random.choice(positions)
     
-    # Find which position the correct answer moved to
+    # Get the correct answer text
     original_correct = question['correct_answer']
-    new_correct_position = None
-    for i, (text, original_pos) in enumerate(options):
-        if original_pos == original_correct:
-            new_correct_position = ['a', 'b', 'c', 'd'][i]
-            break
+    correct_text = question[f'option_{original_correct}']
+    
+    # Create list of all answer texts
+    all_options = [
+        question['option_a'],
+        question['option_b'],
+        question['option_c'],
+        question['option_d']
+    ]
+    
+    # Remove correct answer and shuffle remaining
+    other_options = [opt for opt in all_options if opt != correct_text]
+    random.shuffle(other_options)
+    
+    # Place correct answer in random position, fill others
+    final_options = [''] * 4
+    correct_index = positions.index(new_correct_position)
+    final_options[correct_index] = correct_text
+    
+    other_index = 0
+    for i in range(4):
+        if i != correct_index:
+            final_options[i] = other_options[other_index]
+            other_index += 1
     
     question_data = {
         'round': game.current_round,
         'question_num': game.current_question + 1,
         'question': question['question'],
         'options': {
-            'a': options[0][0],
-            'b': options[1][0],
-            'c': options[2][0],
-            'd': options[3][0]
+            'a': final_options[0],
+            'b': final_options[1],
+            'c': final_options[2],
+            'd': final_options[3]
         },
         'correct_answer': new_correct_position
     }
