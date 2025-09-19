@@ -28,52 +28,85 @@ def create_questions_source_table():
     
     # Comprehensive question set
     questions = [
-        ("What is the capital of France?", "London", "Berlin", "Paris", "Madrid", "c"),
-        ("Which planet is closest to the Sun?", "Venus", "Mercury", "Earth", "Mars", "b"),
-        ("What is 2 + 2?", "3", "4", "5", "6", "b"),
-        ("Who painted the Mona Lisa?", "Van Gogh", "Picasso", "Da Vinci", "Monet", "c"),
-        ("What is the largest ocean?", "Atlantic", "Indian", "Arctic", "Pacific", "d"),
-        ("What year did World War II end?", "1944", "1945", "1946", "1947", "b"),
-        ("What is the chemical symbol for gold?", "Go", "Gd", "Au", "Ag", "c"),
-        ("Which country invented pizza?", "Greece", "Italy", "Spain", "France", "b"),
-        ("What is the smallest country in the world?", "Monaco", "Vatican City", "San Marino", "Liechtenstein", "b"),
-        ("Who wrote Romeo and Juliet?", "Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain", "b"),
-        ("What is the hardest natural substance?", "Gold", "Iron", "Diamond", "Platinum", "c"),
-        ("Which gas makes up most of Earth's atmosphere?", "Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen", "b"),
-        ("What is the largest mammal?", "Elephant", "Blue Whale", "Giraffe", "Hippopotamus", "b"),
-        ("In which year did the Titanic sink?", "1910", "1911", "1912", "1913", "c"),
-        ("What is the currency of Japan?", "Yuan", "Won", "Yen", "Rupee", "c"),
-        ("Which continent is the Sahara Desert located in?", "Asia", "Africa", "Australia", "South America", "b"),
-        ("What is the square root of 64?", "6", "7", "8", "9", "c"),
-        ("Who developed the theory of relativity?", "Newton", "Einstein", "Galileo", "Darwin", "b"),
-        ("What is the longest river in the world?", "Amazon", "Nile", "Mississippi", "Yangtze", "b"),
-        ("Which element has the atomic number 1?", "Helium", "Hydrogen", "Lithium", "Carbon", "b"),
-        ("What is the capital of Australia?", "Sydney", "Melbourne", "Canberra", "Perth", "c"),
-        ("Who painted The Starry Night?", "Picasso", "Van Gogh", "Monet", "Da Vinci", "b"),
-        ("What is the largest planet in our solar system?", "Saturn", "Jupiter", "Neptune", "Uranus", "b"),
-        ("Which ocean is the deepest?", "Atlantic", "Indian", "Arctic", "Pacific", "d"),
-        ("What is the most abundant element in the universe?", "Oxygen", "Hydrogen", "Carbon", "Nitrogen", "b"),
-        ("Who wrote '1984'?", "Aldous Huxley", "George Orwell", "Ray Bradbury", "H.G. Wells", "b"),
-        ("What is the speed of light?", "300,000 km/s", "150,000 km/s", "450,000 km/s", "600,000 km/s", "a"),
-        ("Which country has the most time zones?", "Russia", "USA", "China", "Canada", "a"),
-        ("What is the smallest bone in the human body?", "Stapes", "Malleus", "Incus", "Radius", "a"),
-        ("Who composed The Four Seasons?", "Bach", "Mozart", "Vivaldi", "Beethoven", "c"),
-        ("What is the chemical formula for water?", "H2O", "CO2", "NaCl", "CH4", "a"),
-        ("Which mountain range contains Mount Everest?", "Andes", "Himalayas", "Rockies", "Alps", "b"),
-        ("What is the largest desert in the world?", "Sahara", "Gobi", "Antarctica", "Arabian", "c"),
-        ("Who invented the telephone?", "Edison", "Bell", "Tesla", "Marconi", "b"),
-        ("What is the capital of Canada?", "Toronto", "Vancouver", "Ottawa", "Montreal", "c"),
-        ("Which planet is known as the Red Planet?", "Venus", "Mars", "Jupiter", "Saturn", "b"),
-        ("What is the longest bone in the human body?", "Tibia", "Femur", "Humerus", "Radius", "b"),
-        ("Who wrote Pride and Prejudice?", "Charlotte Bronte", "Jane Austen", "Emily Dickinson", "Virginia Woolf", "b"),
-        ("What is the freezing point of water in Celsius?", "-1", "0", "1", "32", "b"),
-        ("Which country gifted the Statue of Liberty to the USA?", "Britain", "France", "Spain", "Italy", "b"),
-        ("What is the largest island in the world?", "Australia", "Greenland", "Madagascar", "Borneo", "b"),
-        ("Who painted the ceiling of the Sistine Chapel?", "Leonardo", "Michelangelo", "Raphael", "Donatello", "b"),
-        ("What is the most spoken language in the world?", "English", "Mandarin", "Spanish", "Hindi", "b"),
-        ("Which organ produces insulin?", "Liver", "Pancreas", "Kidney", "Heart", "b"),
-        ("What is the smallest prime number?", "0", "1", "2", "3", "c"),
-        ("Who discovered penicillin?", "Pasteur", "Fleming", "Curie", "Darwin", "b")
+        ("What is widely considered to be the first horror movie made?", "Nosferatu", "Frankenstein",
+         "The House of the Devil", "Dr. Jekyll and Mr. Hyde", "c")
+        ("What is the name of Neve Campbell’s character in Scream?", "Gale Weathers", "Sidney Prescott", "Tatum Riley",
+         "Casey Becker", "b")
+        ("In Jeepers Creepers, the Creeper rises every how many years to feed?", "13 years", "30 years", "23 years",
+         "50 years", "c")
+        ("What is the name of the summer camp where Friday the 13th takes place?", "Camp Crystal Lake", "Camp Redwood",
+         "Camp Blood", "Camp Silver Lake", "a")
+        ("What kind of allergy does Charlie have in Hereditary?", "Shellfish allergy", "Nut allergy", "Gluten allergy",
+         "Dairy allergy", "b")
+        ("What is the name of the possessed young girl in The Exorcist?", "Linda", "Emily", "Regan", "Sarah", "c")
+        ("In which state does The Blair Witch Project take place?", "Virginia", "Maryland", "Pennsylvania", "Ohio", "b")
+        ("Who plays Pennywise in 2017’s It?", "Alexander Skarsgård", "Bill Skarsgård", "Gustaf Skarsgård",
+         "Stellan Skarsgård", "b")
+        ("In The Ring, how long do people have to live after watching the video tape?", "3 days", "5 days", "7 days",
+         "10 days", "c")
+        ("Who plays Chucky’s love interest, Tiffany, in Bride of Chucky?", "Jennifer Tilly", "Sarah Michelle Gellar",
+         "Neve Campbell", "Courteney Cox", "a")
+        ("Who directed acclaimed horror movies Get Out and Us?", "Jordan Peele", "James Wan", "John Carpenter",
+         "Ari Aster", "a")
+        ("What year was the first Saw movie released?", "2002", "2003", "2004", "2005", "c")
+        ("What is the name of the man Dr. Caligari controls in The Cabinet of Dr. Caligari?", "Cesare", "Hans", "Karl",
+         "Otto", "a")
+        ("Which horror movie stars Jennifer Love Hewitt, Freddie Prinze Jr., Sarah Michelle Gellar and Ryan Phillippe?",
+         "Scream", "I Know What You Did Last Summer", "Urban Legend", "Final Destination", "b")
+        ("In which city does Rosemary’s Baby take place?", "Los Angeles", "Chicago", "New York City", "Boston", "c")
+        ("There are two serial killers at the center of Silence of the Lambs. What are their names?",
+         "Hannibal Lecter and Buffalo Bill", "Hannibal Lecter and Norman Bates", "Buffalo Bill and Michael Myers",
+         "Norman Bates and Freddy Krueger", "a")
+        ("In Halloween, Michael Myers, as a child, kills his teenage sister. What was her name?", "Laurie", "Judith",
+         "Annie", "Linda", "b")
+        ("Which author of scary books holds the record for the most book-to-movie adaptations in the horror genre?",
+         "Dean Koontz", "Stephen King", "Clive Barker", "Anne Rice", "b")
+        ("What title is Dani crowned in Midsommar?", "Sun Queen", "Flower Maiden", "May Queen", "Harvest Queen", "c")
+        ("Passengers must survive what kind of outbreak in Train to Busan?", "Vampire outbreak", "Zombie outbreak",
+         "Plague outbreak", "Alien outbreak", "b")
+        ("What is the name of the hotel Jack Torrance is hired to care for in The Shining?", "The Overlook Hotel",
+         "The Stanley Hotel", "The Timberline Hotel", "The Grand Hotel", "a")
+        ("Who plays Freddy Krueger in A Nightmare on Elm Street?", "Robert Englund", "Jackie Earle Haley",
+         "Doug Bradley", "Tony Todd", "a")
+        ("What is the real name of “The Black Bride” in Insidious: Chapter 2?", "Parker Crane", "Elise Rainier",
+         "Josh Lambert", "Carl", "a")
+        ("What year was the original The Texas Chainsaw Massacre released?", "1972", "1973", "1974", "1975", "c")
+        ("Who plays Norman Bates in 1960’s Psycho?", "Anthony Perkins", "Vincent Price", "Peter Cushing",
+         "Christopher Lee", "a")
+        ("1922’s Nosferatu is an unofficial adaptation of which vampire book?", "Dracula", "Carmilla", "The Vampyre",
+         "Salem's Lot", "a")
+        ("Which city were Alex and his classmates flying to when he had a disturbing premonition on the plane in Final Destination?",
+         "London", "Rome", "Paris", "Berlin", "c")
+        ("Who directed 1963’s The Birds?", "Alfred Hitchcock", "Stanley Kubrick", "George Romero", "John Carpenter",
+         "a")
+        ("The Witch takes place in what year?", "1620", "1630", "1640", "1650", "b")
+        ("What is the name of the killer in the Saw franchise?", "Jigsaw", "Puzzleman", "The Engineer", "The Architect",
+         "a")
+        ("Which horror movie isn’t based on a book?", "Frankenstein", "Bird Box", "Interview with the Vampire",
+         "A Quiet Place", "d")
+        ("What is the name of the spacecraft the crew is aboard in Alien?", "The Nostromo", "The Prometheus",
+         "The Covenant", "The Sulaco", "a")
+        ("In which city does 1992’s Candyman take place?", "Detroit", "Chicago", "New Orleans", "Baltimore", "b")
+        ("Which actor appears in The Purge, Sinister and The Black Phone?", "Ethan Hawke", "Patrick Wilson",
+         "James McAvoy", "Cillian Murphy", "a")
+        ("How many killers are there in The Strangers?", "Two", "Three", "Four", "Five", "b")
+        ("Who played Carrie in 1976’s Carrie?", "Sissy Spacek", "Jamie Lee Curtis", "Linda Blair", "Piper Laurie", "a")
+        ("Where does Noa meet Steve in Fresh?", "The grocery store", "A bar", "A coffee shop", "A dating app", "a")
+        ("What is the name of the pop-up book in The Babadook?", "Mister Babadook", "The Dark Book", "The Shadow Man",
+         "The Creeper", "a")
+        ("What year was Let the Right One In released?", "2006", "2007", "2008", "2009", "c")
+        ("Which actor and actress play Ed and Lorraine Warren in The Conjuring universe?",
+         "Patrick Wilson and Vera Farmiga", "Ethan Hawke and Toni Collette", "James McAvoy and Jessica Chastain",
+         "Ryan Gosling and Emily Blunt", "a")
+        ("The Losers Club reunites after how many years in It Chapter Two?", "17 years", "27 years", "37 years",
+         "47 years", "b")
+        ("What is used to suppress the evil leprechaun’s powers in Leprechaun?", "Silver", "Garlic", "Four-leaf clover",
+         "Holy water", "c")
+        ("Which two slashers faced off in a 2003 movie?", "Michael Myers and Jason Voorhees",
+         "Freddy Krueger and Jason Voorhees", "Freddy Krueger and Leatherface", "Chucky and Freddy Krueger", "b")
+        ("In Insidious, what ability do Josh and Dalton share?", "Telepathy", "Time travel", "Astral projection",
+         "Mind control", "c")
+        ("What is the name of the child in The Omen?", "Damien", "David", "Daniel", "Derek", "a")
     ]
     
     # Insert questions into source table
