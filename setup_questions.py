@@ -74,7 +74,7 @@ def create_questions_source_table():
         ('Who plays Norman Bates in 1960’s Psycho?', 'Anthony Perkins', 'Vincent Price', 'Peter Cushing',
          'Christopher Lee', 'a')
         ('1922’s Nosferatu is an unofficial adaptation of which vampire book?', 'Dracula', 'Carmilla', 'The Vampyre',
-         'Salem's Lot', 'a')
+         'Salems Lot', 'a')
         ('Which city were Alex and his classmates flying to when he had a disturbing premonition on the plane in Final Destination?',
          'London', 'Rome', 'Paris', 'Berlin', 'c')
         ('Who directed 1963’s The Birds?', 'Alfred Hitchcock', 'Stanley Kubrick', 'George Romero', 'John Carpenter',
