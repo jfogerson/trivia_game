@@ -495,9 +495,10 @@ def handle_start_game(data):
     # Show round 1 start screen before first question
     print(f"Showing round 1 start screen to room {game_id}", flush=True)
     socketio.emit('show_round_start', {'round_number': 1}, room=game_id)
-    print(f"Round start event emitted", flush=True)
+    print(f"Round start event emitted, waiting 8 seconds before first question", flush=True)
+    
+    # Wait longer to ensure round start screen is seen
     threading.Timer(8.0, start_question, [game_id]).start()
-    print(f"First question will start in 8 seconds after round start", flush=True)
 
 def start_question(game_id):
     if game_id not in games:

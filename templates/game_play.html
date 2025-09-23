@@ -57,6 +57,29 @@ let timerInterval = null;
 
 console.log('Connecting to game:', gameId, 'as player:', playerName);
 
+// Add round start handler immediately
+socket.on('show_round_start', function(data) {
+    console.log('=== ROUND START EVENT RECEIVED ===');
+    console.log('Round number:', data.round_number);
+    
+    const overlay = document.getElementById('roundStartOverlay');
+    const frame = document.getElementById('roundStartFrame');
+    
+    if (!overlay || !frame) {
+        console.error('Round start elements not found!');
+        return;
+    }
+    
+    frame.src = `/game/${gameId}/round/${data.round_number}`;
+    overlay.style.display = 'block';
+    console.log('Round start overlay displayed');
+    
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        console.log('Round start overlay hidden');
+    }, 6000);
+});
+
 socket.emit('join_game', {
     game_id: gameId,
     password: gamePassword,
@@ -294,43 +317,7 @@ socket.on('round_ended', function(data) {
     alert(`Round ${data.next_round - 1} ended! Starting Round ${data.next_round}...`);
 });
 
-// Add this right after the socket connection
-socket.on('show_round_start', function(data) {
-    console.log('=== ROUND START EVENT RECEIVED ===');
-    console.log('Round number:', data.round_number);
-    
-    const overlay = document.getElementById('roundStartOverlay');
-    const frame = document.getElementById('roundStartFrame');
-    
-    if (!overlay || !frame) {
-        console.error('Round start elements not found!');
-        console.error('Overlay element:', overlay);
-        console.error('Frame element:', frame);
-        return;
-    }
-    
-    console.log('Setting frame src to:', `/game/${gameId}/round/${data.round_number}`);
-    frame.src = `/game/${gameId}/round/${data.round_number}`;
-    overlay.style.display = 'block';
-    console.log('Round start overlay displayed');
-    
-    // Auto-hide after 8 seconds as backup
-    setTimeout(() => {
-        console.log('Auto-hiding round start overlay');
-        overlay.style.display = 'none';
-    }, 8000);
-    
-    // Listen for completion message from iframe
-    const messageHandler = function(event) {
-        console.log('Received message from iframe:', event.data);
-        if (event.data === 'round_start_complete') {
-            console.log('Round start complete, hiding overlay');
-            overlay.style.display = 'none';
-            window.removeEventListener('message', messageHandler);
-        }
-    };
-    window.addEventListener('message', messageHandler);
-});
+
 
 socket.on('game_ended', function(data) {
     document.getElementById('questionArea').style.display = 'none';
