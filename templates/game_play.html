@@ -92,6 +92,24 @@ socket.on('joined_game', function(data) {
 
 socket.on('game_started', function(data) {
     console.log('=== GAME STARTED EVENT RECEIVED ===');
+    
+    // Force show round start as a test
+    console.log('Forcing round start display as test');
+    const overlay = document.getElementById('roundStartOverlay');
+    const frame = document.getElementById('roundStartFrame');
+    
+    if (overlay && frame) {
+        frame.src = `/game/${gameId}/round/1`;
+        overlay.style.display = 'block';
+        console.log('Test round start overlay displayed');
+        
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            console.log('Test round start overlay hidden');
+        }, 5000);
+    } else {
+        console.error('Round start elements not found for test');
+    }
 });
 
 socket.on('error', function(data) {
