@@ -397,6 +397,15 @@ def handle_join_game(data):
     print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
     emit('joined_game', {'player_name': player_name})
     
+    # If game is already playing, send current state to new player
+    if game.status == 'playing':
+        print(f"Game already playing, sending current state to {player_name}", flush=True)
+        emit('game_started')
+        # Show round start if we're at the beginning of a round
+        if game.current_question == 0:
+            print(f"Sending round start to new player: Round {game.current_round}", flush=True)
+            emit('show_round_start', {'round_number': game.current_round})
+    
     # Only emit player list update if this is a new player and game hasn't started
     if not player_exists and game.status == 'waiting':
         socketio.emit('player_joined', {'players': list(game.players.values())}, room=game_id)
