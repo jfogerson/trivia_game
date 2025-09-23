@@ -67,6 +67,10 @@ socket.on('joined_game', function(data) {
     console.log('Successfully joined game:', data);
 });
 
+socket.on('game_started', function(data) {
+    console.log('=== GAME STARTED EVENT RECEIVED ===');
+});
+
 socket.on('error', function(data) {
     console.error('Game error:', data);
     alert('Error: ' + data.message);
@@ -290,6 +294,7 @@ socket.on('round_ended', function(data) {
     alert(`Round ${data.next_round - 1} ended! Starting Round ${data.next_round}...`);
 });
 
+// Add this right after the socket connection
 socket.on('show_round_start', function(data) {
     console.log('=== ROUND START EVENT RECEIVED ===');
     console.log('Round number:', data.round_number);
@@ -299,6 +304,8 @@ socket.on('show_round_start', function(data) {
     
     if (!overlay || !frame) {
         console.error('Round start elements not found!');
+        console.error('Overlay element:', overlay);
+        console.error('Frame element:', frame);
         return;
     }
     
