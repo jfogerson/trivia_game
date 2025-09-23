@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round {{ round_number }} - Trivia Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .round-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .round-title {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        .round-graphic {
+            max-width: 400px;
+            max-height: 300px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin: 20px 0;
+        }
+        
+        .countdown {
+            font-size: 2rem;
+            margin-top: 30px;
+            color: #ffeb3b;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .round-1 { color: #4CAF50; }
+        .round-2 { color: #FF9800; }
+        .round-3 { color: #F44336; }
+    </style>
+</head>
+<body>
+    <div class="round-container">
+        <h1 class="round-title round-{{ round_number }}">Round Number {{ round_number }}</h1>
+        
+        {% if round_number == 1 %}
+            <img src="{{ url_for('static', filename='round1.png') }}" alt="Round 1" class="round-graphic" onerror="this.style.display='none'">
+        {% elif round_number == 2 %}
+            <img src="{{ url_for('static', filename='round2.png') }}" alt="Round 2" class="round-graphic" onerror="this.style.display='none'">
+        {% elif round_number == 3 %}
+            <img src="{{ url_for('static', filename='round3.png') }}" alt="Round 3" class="round-graphic" onerror="this.style.display='none'">
+        {% endif %}
+        
+        <div class="countdown" id="countdown">Get Ready!</div>
+    </div>
+
+    <script>
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            if (countdown > 0) {
+                countdownElement.textContent = `Starting in ${countdown}...`;
+                countdown--;
+            } else {
+                countdownElement.textContent = 'Let\'s Go!';
+                clearInterval(timer);
+                // Auto-advance after showing "Let's Go!" for 1 second
+                setTimeout(() => {
+                    window.parent.postMessage('round_start_complete', '*');
+                }, 1000);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

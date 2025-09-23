@@ -220,6 +220,14 @@ def game_admin(game_id):
     
     return render_template('admin_game.html', game_id=game_id)
 
+@app.route('/game/<game_id>/round/<int:round_number>')
+def round_start(game_id, round_number):
+    if game_id not in games:
+        return "Game not found", 404
+    if round_number not in [1, 2, 3]:
+        return "Invalid round number", 400
+    return render_template('round_start.html', round_number=round_number)
+
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login_api():
     username = request.json['username']
@@ -937,8 +945,9 @@ def end_round(game_id):
     game.current_round += 1
     game.current_question = 0
     
-    socketio.emit('round_ended', {'next_round': game.current_round}, room=game_id)
-    threading.Timer(5.0, start_question, [game_id]).start()
+    # Show round start page before continuing
+    socketio.emit('show_round_start', {'round_number': game.current_round}, room=game_id)
+    threading.Timer(8.0, start_question, [game_id]).start()
 
 def end_game(game_id):
     if game_id not in games:

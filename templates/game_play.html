@@ -39,6 +39,10 @@
     <div id="finalScores"></div>
 </div>
 
+<div id="roundStartOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000;">
+    <iframe id="roundStartFrame" style="width: 100%; height: 100%; border: none;"></iframe>
+</div>
+
 <script>
 const socket = io();
 const gameId = window.location.pathname.split('/')[2];
@@ -284,6 +288,22 @@ socket.on('player_eliminated', function(data) {
 
 socket.on('round_ended', function(data) {
     alert(`Round ${data.next_round - 1} ended! Starting Round ${data.next_round}...`);
+});
+
+socket.on('show_round_start', function(data) {
+    console.log('Showing round start for round:', data.round_number);
+    const overlay = document.getElementById('roundStartOverlay');
+    const frame = document.getElementById('roundStartFrame');
+    
+    frame.src = `/game/${gameId}/round/${data.round_number}`;
+    overlay.style.display = 'block';
+    
+    // Listen for completion message from iframe
+    window.addEventListener('message', function(event) {
+        if (event.data === 'round_start_complete') {
+            overlay.style.display = 'none';
+        }
+    }, { once: true });
 });
 
 socket.on('game_ended', function(data) {
