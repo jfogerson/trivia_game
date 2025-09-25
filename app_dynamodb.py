@@ -833,7 +833,8 @@ def handle_vote_player(data):
     # Check limits: max 4 points per round, max 10 total points
     points_per_vote = game.current_round if game.current_round <= 3 else 1
     round_points = game.points_awarded.get(target_sid, 0)
-    if round_points + points_per_vote > 4 or target['score'] >= 10:
+    points_would_award = min(points_per_vote, 10 - target['score'])
+    if round_points + points_would_award > 4 or target['score'] >= 10 or points_would_award <= 0:
         # Send updated list without this player
         available_targets = []
         for incorrect_player in game.incorrect_players:
@@ -848,11 +849,13 @@ def handle_vote_player(data):
         })
         return
     
-    # Record vote and award points based on round
+    # Record vote and award points based on round, but cap at 10 total
     points_per_vote = game.current_round if game.current_round <= 3 else 1
+    points_to_award = min(points_per_vote, 10 - target['score'])
+    
     game.votes_cast[request.sid] = target_sid
-    game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + points_per_vote
-    target['score'] += points_per_vote
+    game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + points_to_award
+    target['score'] += points_to_award
     
     # Check if target now has 4 points this round - notify other voters to choose again
     if game.points_awarded[target_sid] == 4:
@@ -879,7 +882,7 @@ def handle_vote_player(data):
         target['readonly'] = True
         socketio.emit('player_eliminated', {'name': target['name']}, room=game_id)
     
-    emit('vote_recorded', {'target': target['name'], 'points': points_per_vote})
+    emit('vote_recorded', {'target': target['name'], 'points': points_to_award})
     print(f"Vote recorded: {voter['name']} -> {target['name']}", flush=True)
     
     # Check if all correct players have voted
