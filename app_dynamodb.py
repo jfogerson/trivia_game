@@ -727,30 +727,54 @@ def voting_timeout(game_id):
         return
     
     game = games[game_id]
-    print(f"Voting timeout - no random votes assigned", flush=True)
+    print(f"Voting timeout - assigning random votes", flush=True)
     
-    # Don't assign random votes - players must choose manually
-    # Only end voting phase if all players have voted or no valid targets remain
+    # Assign random votes for players who haven't voted
+    import random
     
-    # Check if there are still available targets
-    available_targets = []
-    for incorrect_player in game.incorrect_players:
-        target_sid = incorrect_player['sid']
-        current_round_points = game.points_awarded.get(target_sid, 0)
-        total_score = game.players[target_sid]['score']
-        
-        if current_round_points < 4 and total_score < 10:
-            available_targets.append(target_sid)
+    for correct_player in game.correct_players:
+        voter_sid = correct_player['sid']
+        if voter_sid not in game.votes_cast:
+            # Find available targets for this voter
+            available_targets = []
+            for incorrect_player in game.incorrect_players:
+                target_sid = incorrect_player['sid']
+                current_round_points = game.points_awarded.get(target_sid, 0)
+                total_score = game.players[target_sid]['score']
+                points_per_vote = game.current_round if game.current_round <= 3 else 1
+                points_would_award = min(points_per_vote, 10 - total_score)
+                
+                if current_round_points + points_would_award <= 4 and total_score < 10 and points_would_award > 0:
+                    available_targets.append(target_sid)
+            
+            if available_targets:
+                # Randomly select a target
+                target_sid = random.choice(available_targets)
+                points_per_vote = game.current_round if game.current_round <= 3 else 1
+                points_to_award = min(points_per_vote, 10 - game.players[target_sid]['score'])
+                
+                # Record the vote
+                game.votes_cast[voter_sid] = target_sid
+                game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + points_to_award
+                game.players[target_sid]['score'] += points_to_award
+                
+                # Check for elimination
+                if game.players[target_sid]['score'] >= 10:
+                    game.players[target_sid]['eliminated'] = True
+                    game.players[target_sid]['readonly'] = True
+                    socketio.emit('player_eliminated', {'name': game.players[target_sid]['name']}, room=game_id)
+                
+                # Notify the voter
+                socketio.emit('vote_recorded', {
+                    'target': game.players[target_sid]['name'], 
+                    'points': points_to_award,
+                    'auto_selected': True
+                }, room=voter_sid)
+                
+                print(f"Auto-voted: {game.players[voter_sid]['name']} -> {game.players[target_sid]['name']} (+{points_to_award})", flush=True)
     
-    # If no targets available or all players voted, end voting
-    if not available_targets or len(game.votes_cast) >= len(game.correct_players):
-        end_voting_phase(game_id)
-    else:
-        # Extend timer for players who haven't voted
-        timer = threading.Timer(15.0, voting_timeout, [game_id])
-        game_timers[game_id] = timer
-        timer.start()
-        print(f"Extended voting timer for 15 more seconds", flush=True)
+    # End voting phase
+    end_voting_phase(game_id)
 
 def end_voting_phase(game_id):
     if game_id not in games:
