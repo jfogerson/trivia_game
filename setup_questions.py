@@ -72,7 +72,7 @@ def create_questions_source_table():
             ('Which service runs containers at edge?' 'Lambda' 'Fargate' 'EKS Anywhere' 'Greengrass' 'd'),
             ('Which service builds digital twins?' 'IoT TwinMaker' 'Outposts' 'S3' 'Glue' 'a'),
             ('Which service secures accounts?' 'Inspector' 'Macie' 'Organizations' 'Shield' 'c'),
-            ('Which service detects PII?' 'Macie' 'GuardDuty' 'Inspector' 'Shield' 'a'),
+            ('Which service detects PII?' 'Macie' 'GuardDuty' 'Inspector' 'Shield' 'a')
         ]
     
     # Insert questions into source table
