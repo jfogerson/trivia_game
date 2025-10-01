@@ -758,11 +758,21 @@ def voting_timeout(game_id):
                 game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + points_to_award
                 game.players[target_sid]['score'] += points_to_award
                 
+                # Send updated player list to admin with new scores
+                if game.admin_sid:
+                    player_list = list(game.players.values())
+                    socketio.emit('admin_player_list', {'players': player_list}, room=game.admin_sid)
+                
                 # Check for elimination
                 if game.players[target_sid]['score'] >= 10:
                     game.players[target_sid]['eliminated'] = True
                     game.players[target_sid]['readonly'] = True
                     socketio.emit('player_eliminated', {'name': game.players[target_sid]['name']}, room=game_id)
+                    
+                    # Send updated player list to admin after elimination
+                    if game.admin_sid:
+                        player_list = list(game.players.values())
+                        socketio.emit('admin_player_list', {'players': player_list}, room=game.admin_sid)
                 
                 # Notify the voter
                 socketio.emit('vote_recorded', {
@@ -881,6 +891,11 @@ def handle_vote_player(data):
     game.points_awarded[target_sid] = game.points_awarded.get(target_sid, 0) + points_to_award
     target['score'] += points_to_award
     
+    # Send updated player list to admin with new scores
+    if game.admin_sid:
+        player_list = list(game.players.values())
+        socketio.emit('admin_player_list', {'players': player_list}, room=game.admin_sid)
+    
     # Check if target now has 4 points this round - notify other voters to choose again
     if game.points_awarded[target_sid] == 4:
         for voter_sid in game.correct_players:
@@ -905,6 +920,11 @@ def handle_vote_player(data):
         target['eliminated'] = True
         target['readonly'] = True
         socketio.emit('player_eliminated', {'name': target['name']}, room=game_id)
+        
+        # Send updated player list to admin after elimination
+        if game.admin_sid:
+            player_list = list(game.players.values())
+            socketio.emit('admin_player_list', {'players': player_list}, room=game.admin_sid)
     
     emit('vote_recorded', {'target': target['name'], 'points': points_to_award})
     print(f"Vote recorded: {voter['name']} -> {target['name']}", flush=True)
