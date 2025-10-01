@@ -191,8 +191,15 @@ socket.on('player_eliminated', function(data) {
     socket.emit('get_players', { game_id: gameId });
 });
 
+let currentTimerInterval = null;
+
 socket.on('new_question', function(data) {
     console.log('New question received:', data);
+    
+    // Clear any existing timer
+    if (currentTimerInterval) {
+        clearInterval(currentTimerInterval);
+    }
     
     document.getElementById('questionText').textContent = data.question;
     document.getElementById('optionA').textContent = 'A: ' + data.options.a;
@@ -207,21 +214,31 @@ socket.on('new_question', function(data) {
     let timeLeft = 15;
     document.getElementById('timer').textContent = timeLeft;
     
-    const timerInterval = setInterval(() => {
+    currentTimerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('timer').textContent = timeLeft;
         
         if (timeLeft <= 0) {
-            clearInterval(timerInterval);
+            clearInterval(currentTimerInterval);
+            currentTimerInterval = null;
+            document.getElementById('timer').textContent = '0';
         }
     }, 1000);
 });
 
 socket.on('timer_stop', function() {
-    document.getElementById('timer').textContent = 'TIME UP';
+    if (currentTimerInterval) {
+        clearInterval(currentTimerInterval);
+        currentTimerInterval = null;
+    }
+    document.getElementById('timer').textContent = '0';
 });
 
 socket.on('show_round_start', function(data) {
+    if (currentTimerInterval) {
+        clearInterval(currentTimerInterval);
+        currentTimerInterval = null;
+    }
     document.getElementById('currentQuestion').style.display = 'none';
 });
 </script>
