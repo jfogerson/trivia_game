@@ -609,6 +609,10 @@ def start_question(game_id):
     # Also send to room as backup
     socketio.emit('new_question', question_data, room=game_id)
     
+    # Send question data to admin
+    if game.admin_sid:
+        socketio.emit('new_question', question_data, room=game.admin_sid)
+    
     # Start 15-second timer
     timer = threading.Timer(15.0, question_timeout, [game_id])
     game_timers[game_id] = timer
@@ -651,6 +655,9 @@ def handle_submit_answer(data):
             game_timers[game_id].cancel()
             del game_timers[game_id]
         socketio.emit('timer_stop', room=game_id)
+        # Send timer stop to admin
+        if game.admin_sid:
+            socketio.emit('timer_stop', room=game.admin_sid)
         question_timeout(game_id)
 
 def question_timeout(game_id):

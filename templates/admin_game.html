@@ -18,6 +18,19 @@
     <p>Players: <span id="playerCount">0</span>/100</p>
 </div>
 
+<div id="currentQuestion" style="display: none; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+    <h3>Current Question</h3>
+    <div id="timer" class="timer" style="color: #dc3545;">15</div>
+    <div id="questionText" style="font-size: 18px; margin: 15px 0;"></div>
+    <div id="questionOptions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+        <div id="optionA" class="option"></div>
+        <div id="optionB" class="option"></div>
+        <div id="optionC" class="option"></div>
+        <div id="optionD" class="option"></div>
+    </div>
+    <p><strong>Correct Answer:</strong> <span id="correctAnswer"></span></p>
+</div>
+
 <div id="playersArea">
     <h2>Players</h2>
     <div id="playersList" class="player-list"></div>
@@ -176,6 +189,40 @@ socket.on('player_eliminated', function(data) {
     alert(`${data.name} has been eliminated!`);
     // Request updated player list
     socket.emit('get_players', { game_id: gameId });
+});
+
+socket.on('new_question', function(data) {
+    console.log('New question received:', data);
+    
+    document.getElementById('questionText').textContent = data.question;
+    document.getElementById('optionA').textContent = 'A: ' + data.options.a;
+    document.getElementById('optionB').textContent = 'B: ' + data.options.b;
+    document.getElementById('optionC').textContent = 'C: ' + data.options.c;
+    document.getElementById('optionD').textContent = 'D: ' + data.options.d;
+    document.getElementById('correctAnswer').textContent = data.correct_answer.toUpperCase();
+    
+    document.getElementById('currentQuestion').style.display = 'block';
+    
+    // Start timer
+    let timeLeft = 15;
+    document.getElementById('timer').textContent = timeLeft;
+    
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+        }
+    }, 1000);
+});
+
+socket.on('timer_stop', function() {
+    document.getElementById('timer').textContent = 'TIME UP';
+});
+
+socket.on('show_round_start', function(data) {
+    document.getElementById('currentQuestion').style.display = 'none';
 });
 </script>
 {% endblock %}
