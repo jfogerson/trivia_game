@@ -355,10 +355,21 @@ socket.on('game_ended', function(data) {
 });
 
 socket.on('player_joined', function(data) {
+    updateScoresList(data.players);
+});
+
+socket.on('score_update', function(data) {
+    updateScoresList(data.players);
+});
+
+function updateScoresList(players) {
     const scoresList = document.getElementById('scoresList');
     scoresList.innerHTML = '';
     
-    data.players.forEach(player => {
+    // Sort players by score (ascending - lowest first since higher score = closer to elimination)
+    const sortedPlayers = players.sort((a, b) => a.score - b.score);
+    
+    sortedPlayers.forEach(player => {
         const div = document.createElement('div');
         div.innerHTML = `${player.name}: ${player.score} points ${player.eliminated ? '(Eliminated)' : ''}`;
         if (player.eliminated) {
@@ -367,7 +378,7 @@ socket.on('player_joined', function(data) {
         }
         scoresList.appendChild(div);
     });
-});
+}
 
 socket.on('game_cancelled', function(data) {
     alert(data.message);
