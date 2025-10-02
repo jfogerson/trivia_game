@@ -19,7 +19,7 @@
 </div>
 
 <div id="currentQuestion" style="display: none; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-    <h3>Current Question</h3>
+    <h3>Round <span id="roundNumber">1</span> - Question <span id="questionNumber">1</span></h3>
     <div id="timer" class="timer" style="color: #dc3545;">15</div>
     <div id="questionText" style="font-size: 18px; margin: 15px 0;"></div>
     <div id="questionOptions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
@@ -201,6 +201,8 @@ socket.on('new_question', function(data) {
         clearInterval(currentTimerInterval);
     }
     
+    document.getElementById('roundNumber').textContent = data.round;
+    document.getElementById('questionNumber').textContent = data.question_num;
     document.getElementById('questionText').textContent = data.question;
     document.getElementById('optionA').textContent = 'A: ' + data.options.a;
     document.getElementById('optionB').textContent = 'B: ' + data.options.b;
