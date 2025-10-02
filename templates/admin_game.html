@@ -77,20 +77,42 @@ socket.on('admin_joined', function() {
 
 socket.on('player_joined', function(data) {
     console.log('Player joined:', data);
-    document.getElementById('playerCount').textContent = data.players.length;
+    // Use the same sorting logic as admin_player_list
+    const event = { players: data.players };
+    document.getElementById('playerCount').textContent = event.players.length;
     
     const playersList = document.getElementById('playersList');
     playersList.innerHTML = '';
     
-    data.players.forEach(player => {
+    // Separate active and eliminated players
+    const activePlayers = event.players.filter(p => !p.eliminated);
+    const eliminatedPlayers = event.players.filter(p => p.eliminated);
+    
+    // Sort active players by score (descending - highest first)
+    activePlayers.sort((a, b) => b.score - a.score);
+    
+    // Sort eliminated players by elimination time (most recent first)
+    eliminatedPlayers.sort((a, b) => (b.eliminated_at || 0) - (a.eliminated_at || 0));
+    
+    // Display eliminated players first (most recent elimination at top)
+    eliminatedPlayers.forEach(player => {
         const div = document.createElement('div');
-        div.className = 'player';
-        if (player.eliminated) div.classList.add('eliminated');
-        
+        div.className = 'player eliminated';
         div.innerHTML = `
             <strong>${player.name}</strong><br>
             Score: ${player.score}<br>
-            ${player.eliminated ? '<em>Eliminated</em>' : ''}
+            <em>Eliminated</em>
+        `;
+        playersList.appendChild(div);
+    });
+    
+    // Then display active players
+    activePlayers.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'player';
+        div.innerHTML = `
+            <strong>${player.name}</strong><br>
+            Score: ${player.score}<br>
             ${player.readonly ? '<em>Read-only</em>' : ''}
         `;
         playersList.appendChild(div);
@@ -104,15 +126,35 @@ socket.on('admin_player_list', function(data) {
     const playersList = document.getElementById('playersList');
     playersList.innerHTML = '';
     
-    data.players.forEach(player => {
+    // Separate active and eliminated players
+    const activePlayers = data.players.filter(p => !p.eliminated);
+    const eliminatedPlayers = data.players.filter(p => p.eliminated);
+    
+    // Sort active players by score (descending - highest first)
+    activePlayers.sort((a, b) => b.score - a.score);
+    
+    // Sort eliminated players by elimination time (most recent first)
+    eliminatedPlayers.sort((a, b) => (b.eliminated_at || 0) - (a.eliminated_at || 0));
+    
+    // Display eliminated players first (most recent elimination at top)
+    eliminatedPlayers.forEach(player => {
         const div = document.createElement('div');
-        div.className = 'player';
-        if (player.eliminated) div.classList.add('eliminated');
-        
+        div.className = 'player eliminated';
         div.innerHTML = `
             <strong>${player.name}</strong><br>
             Score: ${player.score}<br>
-            ${player.eliminated ? '<em>Eliminated</em>' : ''}
+            <em>Eliminated</em>
+        `;
+        playersList.appendChild(div);
+    });
+    
+    // Then display active players
+    activePlayers.forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'player';
+        div.innerHTML = `
+            <strong>${player.name}</strong><br>
+            Score: ${player.score}<br>
             ${player.readonly ? '<em>Read-only</em>' : ''}
         `;
         playersList.appendChild(div);

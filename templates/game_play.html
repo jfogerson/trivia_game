@@ -318,17 +318,6 @@ socket.on('points_received', function(data) {
 
 socket.on('player_eliminated', function(data) {
     alert(`${data.name} has been eliminated from the game!`);
-    
-    // Update scores display to show elimination
-    const scoresList = document.getElementById('scoresList');
-    const playerDivs = scoresList.children;
-    for (let div of playerDivs) {
-        if (div.innerHTML.includes(data.name)) {
-            div.style.color = '#999';
-            div.style.textDecoration = 'line-through';
-            break;
-        }
-    }
 });
 
 socket.on('round_ended', function(data) {
@@ -366,16 +355,29 @@ function updateScoresList(players) {
     const scoresList = document.getElementById('scoresList');
     scoresList.innerHTML = '';
     
-    // Sort players by score (ascending - lowest first since higher score = closer to elimination)
-    const sortedPlayers = players.sort((a, b) => a.score - b.score);
+    // Separate active and eliminated players
+    const activePlayers = players.filter(p => !p.eliminated);
+    const eliminatedPlayers = players.filter(p => p.eliminated);
     
-    sortedPlayers.forEach(player => {
+    // Sort active players by score (descending - highest first)
+    activePlayers.sort((a, b) => b.score - a.score);
+    
+    // Sort eliminated players by elimination time (most recent first)
+    eliminatedPlayers.sort((a, b) => (b.eliminated_at || 0) - (a.eliminated_at || 0));
+    
+    // Display eliminated players first (most recent elimination at top)
+    eliminatedPlayers.forEach(player => {
         const div = document.createElement('div');
-        div.innerHTML = `${player.name}: ${player.score} points ${player.eliminated ? '(Eliminated)' : ''}`;
-        if (player.eliminated) {
-            div.style.color = '#999';
-            div.style.textDecoration = 'line-through';
-        }
+        div.innerHTML = `${player.name}: ${player.score} points (Eliminated)`;
+        div.style.color = '#999';
+        div.style.textDecoration = 'line-through';
+        scoresList.appendChild(div);
+    });
+    
+    // Then display active players
+    activePlayers.forEach(player => {
+        const div = document.createElement('div');
+        div.innerHTML = `${player.name}: ${player.score} points`;
         scoresList.appendChild(div);
     });
 }

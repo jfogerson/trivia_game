@@ -391,7 +391,8 @@ def handle_join_game(data):
             'name': player_name,
             'score': 0,
             'eliminated': False,
-            'readonly': False
+            'readonly': False,
+            'eliminated_at': None
         }
     
     print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
@@ -778,6 +779,7 @@ def voting_timeout(game_id):
                 if game.players[target_sid]['score'] >= 10:
                     game.players[target_sid]['eliminated'] = True
                     game.players[target_sid]['readonly'] = True
+                    game.players[target_sid]['eliminated_at'] = time.time()
                     socketio.emit('player_eliminated', {'name': game.players[target_sid]['name']}, room=game_id)
                     
                     # Send updated player list to admin after elimination
@@ -938,6 +940,7 @@ def handle_vote_player(data):
     if target['score'] >= 10:
         target['eliminated'] = True
         target['readonly'] = True
+        target['eliminated_at'] = time.time()
         socketio.emit('player_eliminated', {'name': target['name']}, room=game_id)
         
         # Send updated player list to admin after elimination
