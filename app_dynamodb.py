@@ -682,11 +682,12 @@ def question_timeout(game_id):
     incorrect_players = []
     
     for sid, answer in game.answers.items():
-        player = game.players[sid]
-        if answer == correct_answer:
-            correct_players.append({'sid': sid, 'name': player['name']})
-        else:
-            incorrect_players.append({'sid': sid, 'name': player['name']})
+        if sid in game.players:  # Safety check
+            player = game.players[sid]
+            if answer == correct_answer:
+                correct_players.append({'sid': sid, 'name': player['name']})
+            else:
+                incorrect_players.append({'sid': sid, 'name': player['name']})
     
     # Initialize voting state
     game.voting_active = True
@@ -1059,23 +1060,28 @@ def end_game(game_id):
 def handle_disconnect():
     print(f"Player disconnected: {request.sid}", flush=True)
     
-    # Remove player from all games
-    for game_id, game in games.items():
-        if request.sid in game.players:
-            player_name = game.players[request.sid]['name']
-            print(f"Removing {player_name} from game {game_id}", flush=True)
-            del game.players[request.sid]
-            
-            # If this was during a question and all remaining connected players have answered, end the question
-            if hasattr(game, 'answers') and game.status == 'playing':
-                connected_active_sids = [sid for sid, p in game.players.items() if not p['eliminated'] and sid in socketio.server.manager.rooms.get('/', {}).get(game_id, set())]
-                if len(game.answers) >= len(connected_active_sids) and len(connected_active_sids) > 0:
-                    if game_id in game_timers:
-                        game_timers[game_id].cancel()
-                        del game_timers[game_id]
-                    socketio.emit('timer_stop', room=game_id)
-                    question_timeout(game_id)
-            break
+    try:
+        # Remove player from all games
+        for game_id, game in games.items():
+            if request.sid in game.players:
+                player_name = game.players[request.sid]['name']
+                print(f"Removing {player_name} from game {game_id}", flush=True)
+                del game.players[request.sid]
+                
+                # If this was during a question and all remaining connected players have answered, end the question
+                if hasattr(game, 'answers') and game.status == 'playing':
+                    connected_active_sids = [sid for sid, p in game.players.items() if not p['eliminated'] and sid in socketio.server.manager.rooms.get('/', {}).get(game_id, set())]
+                    if len(game.answers) >= len(connected_active_sids) and len(connected_active_sids) > 0:
+                        if game_id in game_timers:
+                            game_timers[game_id].cancel()
+                            del game_timers[game_id]
+                        socketio.emit('timer_stop', room=game_id)
+                        question_timeout(game_id)
+                break
+    except Exception as e:
+        print(f"disconnect handler error", flush=True)
+        import traceback
+        traceback.print_exc()
 
 if __name__ == '__main__':
     print("Initializing DynamoDB...", flush=True)
