@@ -30,10 +30,10 @@ def create_questions_source_table():
     questions = [
         ('What does AI stand for?', 'Artificial Intelligence', 'Artifical Intelligence', 'Artificiial Intelligence','Artificial Intellligence', 'a'),
         ('Which neural network type is best for sequence data?', 'CNN', 'RNN', 'GAN', 'SVM', 'b'),
-        ('What does AI enable machines to do?' 'Play games', 'Send emails', 'Store data', 'Solve problems', 'd'),
+        ('What does AI enable machines to do?', 'Play games', 'Send emails', 'Store data', 'Solve problems', 'd'),
         ('Who introduced the concept of AI?', 'Alan Turing', 'Marvin Minsky', 'John McCarthy', 'Geoffrey Hinton', 'a'),
         ('What year did IBM’s Deep Blue beat Kasparov?', '1987', '1990', '1997', '2000', 'c'),
-        ('What is the main focus of AI?', 'Automation', 'Human-like tasks', 'Networking' 'Security', 'b'),
+        ('What is the main focus of AI?', 'Automation', 'Human-like tasks', 'Networking', 'Security', 'b'),
         ('What does ML stand for?', 'Managed Logic', 'Machine Learning', 'Modern Language', 'Matrix Lab', 'b'),
         ('What do deep learning models use?', 'Neural Networks', 'SQL Databases', 'Static Rules', 'Flat Files', 'a'),
         ('Which field uses NLP?', 'Voice Control', 'Image Editing', 'Data Mining', 'File Transfer', 'a'),
