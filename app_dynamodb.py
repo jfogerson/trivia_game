@@ -427,17 +427,9 @@ def handle_join_game(data):
     player_exists = request.sid in game.players
     
     if not player_exists:
-        # Simple duplicate name check - only reject if name exists with different sid
-        name_conflict = False
-        for sid, player in game.players.items():
-            if sid != request.sid and player.get('name', '').lower() == player_name.lower():
-                name_conflict = True
-                break
-        
-        if name_conflict:
-            print(f"Name {player_name} already taken in game {game_id}", flush=True)
-            emit('error', {'message': 'Name already taken. Please choose a different name.'})
-            return
+        # Temporarily disabled duplicate name check for debugging
+        print(f"Current players in game: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
+        print(f"New player {player_name} with sid {request.sid} joining", flush=True)
         
         print(f"Player {player_name} joining room {game_id}", flush=True)
         join_room(game_id)
