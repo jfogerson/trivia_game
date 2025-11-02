@@ -1178,6 +1178,18 @@ def end_game(game_id):
     }, room=game_id)
     
     print(f"Game {game_id} ended. Winner: {winner['name'] if winner else 'No winner'}", flush=True)
+    
+    # Clean up game state to prevent stale data
+    game.players = {}
+    game.status = 'waiting'
+    game.current_round = 0
+    game.current_question = 0
+    game.answers = {}
+    
+    # Cancel any active timers
+    if game_id in game_timers:
+        game_timers[game_id].cancel()
+        del game_timers[game_id]
 
 @socketio.on('disconnect')
 def handle_disconnect():
