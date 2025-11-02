@@ -1,0 +1,362 @@
+[
+  {
+    "question": "Which Azure service helps orchestrate workflows visually between services?",
+    "option_a": "Azure Logic Apps",
+    "option_b": "Azure Functions",
+    "option_c": "Azure Automation",
+    "option_d": "Azure DevOps",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service is designed for identity and access management?",
+    "option_a": "Azure Active Directory",
+    "option_b": "Azure Security Center",
+    "option_c": "Azure Monitor",
+    "option_d": "Azure Policy",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service balances network traffic between applications?",
+    "option_a": "Azure Load Balancer",
+    "option_b": "Azure Application Gateway",
+    "option_c": "Azure Front Door",
+    "option_d": "Azure ExpressRoute",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service allows you to back up and restore workloads?",
+    "option_a": "Azure Backup",
+    "option_b": "Azure Site Recovery",
+    "option_c": "Azure Storage Explorer",
+    "option_d": "Azure Key Vault",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service provides governance and compliance recommendations?",
+    "option_a": "Azure Advisor",
+    "option_b": "Azure Policy",
+    "option_c": "Azure Monitor",
+    "option_d": "Azure Automation",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service provides cost management and budgeting tools?",
+    "option_a": "Azure Cost Management + Billing",
+    "option_b": "Azure Advisor",
+    "option_c": "Azure Monitor",
+    "option_d": "Azure Policy",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service enables real-time event streaming and processing?",
+    "option_a": "Azure Event Hubs",
+    "option_b": "Azure Logic Apps",
+    "option_c": "Azure Service Bus",
+    "option_d": "Azure Functions",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service provides centralized management for multiple subscriptions?",
+    "option_a": "Azure Management Groups",
+    "option_b": "Azure Resource Manager",
+    "option_c": "Azure Policy",
+    "option_d": "Azure Monitor",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service provides scalable, distributed NoSQL database capabilities?",
+    "option_a": "Azure Cosmos DB",
+    "option_b": "Azure SQL Database",
+    "option_c": "Azure Synapse Analytics",
+    "option_d": "Azure Blob Storage",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service lets you run Windows 10/11 desktops in the cloud?",
+    "option_a": "Azure Virtual Desktop",
+    "option_b": "Azure Kubernetes Service",
+    "option_c": "Azure App Service",
+    "option_d": "Azure Virtual Machines",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service delivers content globally with low latency?",
+    "option_a": "Azure Content Delivery Network",
+    "option_b": "Azure Front Door",
+    "option_c": "Azure Traffic Manager",
+    "option_d": "Azure Load Balancer",
+    "correct_answer": "a"
+  },
+  {
+    "question": "Which Azure service is used to host and scale containerized applications?",
+    "option_a": "Azure App Service",
+    "option_b": "Azure Kubernetes Service",
+    "option_c": "Azure Virtual Machines",
+    "option_d": "Azure Logic Apps",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service provides analytics for security and threat detection?",
+    "option_a": "Azure Policy",
+    "option_b": "Microsoft Sentinel",
+    "option_c": "Azure Advisor",
+    "option_d": "Azure Defender",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service provides a scalable, managed Apache Spark platform?",
+    "option_a": "Azure Functions",
+    "option_b": "Azure Databricks",
+    "option_c": "Azure DevOps",
+    "option_d": "Azure Logic Apps",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service allows integration and automation between cloud and on-prem systems?",
+    "option_a": "Azure Event Grid",
+    "option_b": "Azure Logic Apps",
+    "option_c": "Azure Service Bus",
+    "option_d": "Azure Functions",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service helps secure cloud resources with policies and compliance rules?",
+    "option_a": "Azure Automation",
+    "option_b": "Azure Policy",
+    "option_c": "Azure Firewall",
+    "option_d": "Azure Load Balancer",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service provides prebuilt AI models for vision, speech, and language?",
+    "option_a": "Azure OpenAI Service",
+    "option_b": "Azure Cognitive Services",
+    "option_c": "Azure Bot Service",
+    "option_d": "Azure HDInsight",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service provides centralized key and secret management?",
+    "option_a": "Azure App Service",
+    "option_b": "Azure Key Vault",
+    "option_c": "Azure Databricks",
+    "option_d": "Azure Monitor",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service enables disaster recovery for virtual machines?",
+    "option_a": "Azure Backup",
+    "option_b": "Azure Site Recovery",
+    "option_c": "Azure Sentinel",
+    "option_d": "Azure Automation",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service helps monitor applications and infrastructure in real time?",
+    "option_a": "Azure Log Analytics",
+    "option_b": "Azure Monitor",
+    "option_c": "Azure Defender",
+    "option_d": "Azure Policy",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service allows you to move data between on-prem and cloud efficiently?",
+    "option_a": "Azure ExpressRoute",
+    "option_b": "Azure Data Box",
+    "option_c": "Azure HDInsight",
+    "option_d": "Azure Event Hubs",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service provides hybrid cloud management for on-prem resources?",
+    "option_a": "Azure Policy",
+    "option_b": "Azure Arc",
+    "option_c": "Azure Lighthouse",
+    "option_d": "Azure Bastion",
+    "correct_answer": "b"
+  },
+  {
+    "question": "Which Azure service allows you to deploy infrastructure using templates?",
+    "option_a": "Azure Key Vault",
+    "option_b": "Azure Firewall",
+    "option_c": "Azure Resource Manager",
+    "option_d": "Azure Synapse Analytics",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service provides cloud-based version control and CI/CD pipelines?",
+    "option_a": "Azure Automation",
+    "option_b": "Azure Key Vault",
+    "option_c": "Azure DevOps",
+    "option_d": "Azure Policy",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service provides serverless compute for event-driven code?",
+    "option_a": "Azure Automation",
+    "option_b": "Azure Kubernetes Service",
+    "option_c": "Azure Functions",
+    "option_d": "Azure Logic Apps",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service provides a platform for big data analytics and data warehousing?",
+    "option_a": "Azure Data Factory",
+    "option_b": "Azure Databricks",
+    "option_c": "Azure Synapse Analytics",
+    "option_d": "Azure App Service",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service enables conversational bots using AI?",
+    "option_a": "Azure Cognitive Services",
+    "option_b": "Azure HDInsight",
+    "option_c": "Azure Bot Service",
+    "option_d": "Azure Databricks",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service provides message queuing for distributed applications?",
+    "option_a": "Azure App Service",
+    "option_b": "Azure Blob Storage",
+    "option_c": "Azure Service Bus",
+    "option_d": "Azure Policy",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service allows you to store unstructured data such as images and documents?",
+    "option_a": "Azure Cosmos DB",
+    "option_b": "Azure Data Factory",
+    "option_c": "Azure Blob Storage",
+    "option_d": "Azure Policy",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service offers hybrid identity synchronization?",
+    "option_a": "Azure Arc",
+    "option_b": "Azure AD B2C",
+    "option_c": "Azure AD Connect",
+    "option_d": "Azure Policy",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service provides AI and ML model training capabilities?",
+    "option_a": "Azure App Configuration",
+    "option_b": "Azure Cognitive Services",
+    "option_c": "Azure Machine Learning",
+    "option_d": "Azure Bot Service",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service provides distributed caching to improve performance?",
+    "option_a": "Azure SQL Database",
+    "option_b": "Azure Blob Storage",
+    "option_c": "Azure Cache for Redis",
+    "option_d": "Azure Functions",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service hosts and manages relational databases?",
+    "option_a": "Azure Databricks",
+    "option_b": "Azure Blob Storage",
+    "option_c": "Azure SQL Database",
+    "option_d": "Azure Cosmos DB",
+    "correct_answer": "c"
+  },
+  {
+    "question": "Which Azure service enables private connections between on-prem and Azure?",
+    "option_a": "Azure Bastion",
+    "option_b": "Azure Private Link",
+    "option_c": "Azure ExpressRoute",
+    "option_d": "Azure VPN Gateway",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service helps centralize configuration for distributed applications?",
+    "option_a": "Azure Automation",
+    "option_b": "Azure Key Vault",
+    "option_c": "Azure DevOps",
+    "option_d": "Azure App Configuration",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service provides AI-powered search across datasets?",
+    "option_a": "Azure Data Factory",
+    "option_b": "Azure HDInsight",
+    "option_c": "Azure Machine Learning",
+    "option_d": "Azure Cognitive Search",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service helps you manage secrets in CI/CD pipelines?",
+    "option_a": "Azure Logic Apps",
+    "option_b": "Azure DevOps Repos",
+    "option_c": "Azure Policy",
+    "option_d": "Azure Key Vault",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service allows external partners to manage your resources securely?",
+    "option_a": "Azure Arc",
+    "option_b": "Azure Policy",
+    "option_c": "Azure Automation",
+    "option_d": "Azure Lighthouse",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service provides automated remediation and compliance enforcement?",
+    "option_a": "Azure Policy",
+    "option_b": "Azure Monitor",
+    "option_c": "Azure Advisor",
+    "option_d": "Azure Automation",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service allows running virtual machines in the cloud?",
+    "option_a": "Azure Functions",
+    "option_b": "Azure Logic Apps",
+    "option_c": "Azure Kubernetes Service",
+    "option_d": "Azure Virtual Machines",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service manages APIs and provides analytics and security?",
+    "option_a": "Azure Load Balancer",
+    "option_b": "Azure Application Gateway",
+    "option_c": "Azure Front Door",
+    "option_d": "Azure API Management",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service delivers real-time user behavior insights?",
+    "option_a": "Azure Log Analytics",
+    "option_b": "Azure Policy",
+    "option_c": "Azure App Service",
+    "option_d": "Azure Application Insights",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service enables users to create and manage virtual networks?",
+    "option_a": "Azure Policy",
+    "option_b": "Azure Firewall",
+    "option_c": "Azure Load Balancer",
+    "option_d": "Azure Virtual Network",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service provides pre-deployment recommendations for performance and cost?",
+    "option_a": "Azure Firewall",
+    "option_b": "Azure Policy",
+    "option_c": "Azure Automation",
+    "option_d": "Azure Advisor",
+    "correct_answer": "d"
+  },
+  {
+    "question": "Which Azure service delivers high-performance, low-latency private connectivity?",
+    "option_a": "Azure Firewall",
+    "option_b": "Azure Policy",
+    "option_c": "Azure Bastion",
+    "option_d": "Azure ExpressRoute",
+    "correct_answer": "d"
+  }
+]

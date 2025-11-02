@@ -420,19 +420,17 @@ def handle_join_game(data):
         emit('error', {'message': 'Game is full'})
         return
     
-    # Check for duplicate names
-    existing_names = [p['name'].lower() for p in game.players.values() if p['name']]
-    if player_name.lower() in existing_names:
-        print(f"Name {player_name} already taken in game {game_id}", flush=True)
-        emit('error', {'message': 'Name already taken. Please choose a different name.'})
-        return
-    
     # Check if player already exists (prevent duplicates)
     player_exists = request.sid in game.players
-    if player_exists:
-        print(f"Player {player_name} already in game, updating info", flush=True)
-        game.players[request.sid]['name'] = player_name
-    else:
+    
+    if not player_exists:
+        # Check for duplicate names only for new players
+        existing_names = [p['name'].lower() for p in game.players.values() if p['name']]
+        if player_name.lower() in existing_names:
+            print(f"Name {player_name} already taken in game {game_id}", flush=True)
+            emit('error', {'message': 'Name already taken. Please choose a different name.'})
+            return
+        
         print(f"Player {player_name} joining room {game_id}", flush=True)
         join_room(game_id)
         game.players[request.sid] = {
@@ -442,6 +440,9 @@ def handle_join_game(data):
             'readonly': False,
             'eliminated_at': None
         }
+    else:
+        print(f"Player {player_name} already in game, updating info", flush=True)
+        game.players[request.sid]['name'] = player_name
     
     print(f"Player {player_name} successfully joined. Total players: {len(game.players)}", flush=True)
     emit('joined_game', {'player_name': player_name})
