@@ -429,16 +429,19 @@ def handle_join_game(data):
     # Check for duplicate names (but allow same sid to rejoin)
     if not player_exists:
         existing_names = [p['name'] for p in game.players.values()]
-        print(f"DUPLICATE CHECK: Player {player_name} (sid: {request.sid}) trying to join", flush=True)
-        print(f"DUPLICATE CHECK: Current players: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
-        print(f"DUPLICATE CHECK: Existing names: {existing_names}", flush=True)
         
-        if player_name in existing_names:
-            print(f"DUPLICATE CHECK: Name {player_name} already taken in game {game_id}", flush=True)
+        # Allow rejoining if this is the same player reconnecting (check session)
+        session_key = f'game_{game_id}'
+        if (player_name in existing_names and 
+            session_key in session and 
+            session[session_key].get('player_name') == player_name):
+            # This is the same player reconnecting, allow it
+            print(f"Player {player_name} reconnecting to game {game_id}", flush=True)
+        elif player_name in existing_names:
+            print(f"Name {player_name} already taken in game {game_id}", flush=True)
             emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
             return
         
-        print(f"DUPLICATE CHECK: Name {player_name} is available, allowing join", flush=True)
         print(f"Current players in game: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
         print(f"New player {player_name} with sid {request.sid} joining", flush=True)
         
