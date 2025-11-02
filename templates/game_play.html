@@ -46,44 +46,62 @@
 <script>
 const socket = io();
 const gameId = window.location.pathname.split('/')[2];
-const urlParams = new URLSearchParams(window.location.search);
-const playerName = urlParams.get('name');
-const gamePassword = urlParams.get('password') || sessionStorage.getItem('gamePassword');
 
 let currentQuestion = null;
 let selectedAnswer = null;
 let timeLeft = 15;
 let timerInterval = null;
+let playerName = null;
 
-console.log('Connecting to game:', gameId, 'as player:', playerName);
-
-// Add round start handler immediately
-socket.on('show_round_start', function(data) {
-    console.log('=== ROUND START EVENT RECEIVED ===');
-    console.log('Round number:', data.round_number);
-    
-    const overlay = document.getElementById('roundStartOverlay');
-    const frame = document.getElementById('roundStartFrame');
-    
-    if (!overlay || !frame) {
-        console.error('Round start elements not found!');
+// Get player info from session
+fetch('/api/get_session_info', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ game_id: gameId })
+})
+.then(response => response.json())
+.then(sessionData => {
+    if (!sessionData.success) {
+        window.location.href = '/';
         return;
     }
     
-    frame.src = `/game/${gameId}/round/${data.round_number}`;
-    overlay.style.display = 'block';
-    console.log('Round start overlay displayed');
+    playerName = sessionData.player_name;
+    console.log('Connecting to game:', gameId, 'as player:', playerName);
     
-    setTimeout(() => {
-        overlay.style.display = 'none';
-        console.log('Round start overlay hidden');
-    }, 6000);
-});
-
-socket.emit('join_game', {
-    game_id: gameId,
-    password: gamePassword,
-    player_name: playerName
+    // Add round start handler immediately
+    socket.on('show_round_start', function(data) {
+        console.log('=== ROUND START EVENT RECEIVED ===');
+        console.log('Round number:', data.round_number);
+        
+        const overlay = document.getElementById('roundStartOverlay');
+        const frame = document.getElementById('roundStartFrame');
+        
+        if (!overlay || !frame) {
+            console.error('Round start elements not found!');
+            return;
+        }
+        
+        frame.src = `/game/${gameId}/round/${data.round_number}`;
+        overlay.style.display = 'block';
+        console.log('Round start overlay displayed');
+        
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            console.log('Round start overlay hidden');
+        }, 6000);
+    });
+    
+    socket.emit('join_game', {
+        game_id: gameId,
+        player_name: playerName
+    });
+})
+.catch(error => {
+    console.error('Error:', error);
+    window.location.href = '/';
 });
 
 socket.on('joined_game', function(data) {

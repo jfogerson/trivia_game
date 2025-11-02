@@ -28,52 +28,96 @@ def create_questions_source_table():
     
     # Comprehensive question set
     questions = [
-        ('What does AI stand for?', 'Artificial Intelligence', 'Artifical Intelligence', 'Artificiial Intelligence','Artificial Intellligence', 'a'),
-        ('Which neural network type is best for sequence data?', 'CNN', 'RNN', 'GAN', 'SVM', 'b'),
-        ('What does AI enable machines to do?', 'Play games', 'Send emails', 'Store data', 'Solve problems', 'd'),
-        ('Who introduced the concept of AI?', 'Alan Turing', 'Marvin Minsky', 'John McCarthy', 'Geoffrey Hinton', 'a'),
-        ('What year did IBM’s Deep Blue beat Kasparov?', '1987', '1990', '1997', '2000', 'c'),
-        ('What is the main focus of AI?', 'Automation', 'Human-like tasks', 'Networking', 'Security', 'b'),
-        ('What does ML stand for?', 'Managed Logic', 'Machine Learning', 'Modern Language', 'Matrix Lab', 'b'),
-        ('What do deep learning models use?', 'Neural Networks', 'SQL Databases', 'Static Rules', 'Flat Files', 'a'),
-        ('Which field uses NLP?', 'Voice Control', 'Image Editing', 'Data Mining', 'File Transfer', 'a'),
-        ('Which AWS service supports ML?', 'SageMaker', 'Textract', 'Bedrock', 'CloudTrail', 'a'),
-        ('What does Amazon Textract do?', 'Analyze Audio', 'Extract Text', 'Generate Images', 'Host Servers', 'b'),
-        ('What is generative AI known for?', 'Data Storage', 'New Content', 'Network Security', 'User Login', 'b'),
-        ('What is the foundation of AI architecture?', 'Models', 'Data', 'Applications', 'Security', 'b'),
-        ('What is the third layer of AI architecture?', 'Data', 'Model', 'Application', 'Security', 'c'),
-        ('Which model won ImageNet in 2012?', 'VGGNet', 'ResNet', 'AlexNet', 'BERT', 'c'),
-        ('Which AWS chip powers deep learning?', 'Inferentia', 'Trainium', 'Graviton', 'Nitro', 'b'),
-        ('What does Responsible AI ensure?', 'Fairness', 'Speed', 'Profit', 'Marketing', 'a'),
-        ('What does AI aim to imitate?', 'Machines', 'Humans', 'Animals', 'Objects', 'b'),
-        ('What type of data does deep learning handle best?', 'Unstructured', 'Numeric', 'Categorical', 'Binary', 'a'),
-        ('Who is the CEO of Amazon?', 'Elon Musk', 'Andy Jassy', 'Jeff Bezos', 'Satya Nadella', 'b'),
-        ('What framework guides AI adoption on AWS?', 'Well-Architected', 'CAF-AI', 'Control Tower', 'SageMaker', 'b'),
-        ('What is CAF-AI built upon?', 'ML Models', 'Cloud Adoption Framework', 'AI Hardware', 'Data Lakes', 'b'),
-        ('What is the main goal of CAF-AI?', 'Replace CAF', 'Guide AI Journey', 'Build Models', 'Train Data', 'b'),
-        ('What does CAF-AI help organizations assess?', 'Data Size', 'AI Maturity', 'Costs', 'Storage', 'b'),
-        ('What does the AWS Well-Architected Framework evaluate?', 'Code Quality', 'Architectural Best Practices','UI Design', 'Data Volume', 'b'),
-        ('How many pillars are in the Well-Architected Framework?', 'Four', 'Five', 'Six', 'Seven', 'c'),
-        ('Which AWS tool helps review workloads?', 'AI Builder', 'Well-Architected Tool', 'SageMaker', 'Textract', 'b'),
-        ('What is the focus of the ML Lens?', 'Model Creation', 'ML Architecture', 'AI Ethics', 'Cost Saving', 'b'),
-        ('What is a foundational element of CAF-AI?', 'Capabilities', 'Products', 'Scripts', 'Instances', 'a'),
-        ('What does CAF-AI aim to accelerate?', 'AI Adoption', 'Cloud Costs', 'User Access', 'Data Storage', 'a'),
-        ('A company wants to record API calls that are made to Amazon Bedrock in log files. For compliance purposes, the company wants these logs to include the API call, the user who made the call, and the time that the call was made.  Which AWS service will meet these requirements?',        'Inspector', 'CloudWatch', 'Trusted Advisor', 'CloudTrail ', 'd'),
-        ('Which AWS service can the company use to secure access to Amazon Bedrock?', 'Amazon Macie', 'Rekognition','Identity and Access Management (IAM)', 'Config', 'c'),
-        ('Which AWS service can detect text and handwriting from invoices that are stored in PNG format?', 'Polly','Textract', 'Kendra', 'Comprehend', 'b'),
-        ('A data scientist notices that a model has high accuracy on training data, but has low accuracy on testing data. What is causing these results?','Not enough training time', 'Underfitting', 'Too much training data', 'Overfitting', 'd'),
-        ('A company wants to use an open source foundation model (FM) to evaluate if contracts adhere to compliance rules.','Which AWS service will meet these requirements?', 'SageMaker JumpStart', 'Textract', 'Kendra', 'Q Business','a'),
-        ('What is a foundation model (FM) in the context of generative AI?','A task-specific model that is trained on a narrow domain, such as finance or medicine, to serve as a foundation in that area.','A large, general-purpose model that is pre-trained on diverse datasets that can be fine-tuned for downstream tasks.','A theoretical framework to understand how different types of models learn representations.','A basic architecture that serves as a starting point to design more complex neural networks.', 'b'),
-        ('A travel company wants to use a pre-trained generative AI model to generate background images for marketing materials. The company does not have ML expertise. Additionally, the company does not want to customize and host the ML model.  Which AWS service will meet these requirements?',      'Bedrock', 'Comprehend', 'Rekognition', 'Personalize', 'a'),
-        ('A company wants to use generative AI to create product descriptions on its website.  What is a limitation of generative AI that the company should be aware of?','Generative AI models might produce biased or inappropriate content that requires human review and editing.','Generative AI cannot handle the large volumes of data that is required for product descriptions.','Generative AI cannot generate text in the multiple languages that is required for an ecommerce website.','Generative AI models lack the ability to understand and incorporate product specifications and details.', 'a'),
-        ('A company wants to increase the consistency and quality of large language model (LLM) responses by providing the model with access to external sources of knowledge. Which technique will meet the requirement with the LEAST development effort?','Report Content Errors', 'Fine-tuning', 'Retrieval augmented generation (RAG)', 'In-context learning', 'Continued pre-training', 'a'),
-        ('A company uses Amazon SageMaker AI for its ML models. The company wants to implement a solution for model owners to create a record of model information. The model information should include intended uses, risk ratings, training details, and evaluation results.',        'Which SageMaker AI feature will meet these requirements?', 'SageMaker Role Manager', 'SageMaker Model Cards','SageMaker Model Dashboard', 'SageMaker Model Monitor', 'c'),
-        ('What is a valid data format for instruction-based fine-tuning?', 'Images that are labeled with categories','Playlists that are curated with recommended music', 'Prompt-response text pairs','Audio files with transcriptions', 'c'),
-        ('A marketing company wants to generate personalized product descriptions for an ecommerce client website.The product descriptions must align with the unique style and tone of the existing website.Which prompt engineering technique will meet these requirements with the LEAST operational effort?','Few-shot prompting with examples of well-written product descriptions','Zero-shot prompting without any examples','Fine-tuning to optimize the descriptions based on customer engagement metrics','Continued pre-training on a different domain','a'),
-        ('A company wants to gain insights from diverse data sources to improve business operations. The data sources include audio from call centers.', 'Which solution will improve transcription accuracy for domain-specific speech?', 'Use a custom bot in Amazon Lex.', 'Use a custom language model in Amazon Translate.', 'Use batch language identification in Amazon Transcribe.', 'Use a custom language model in Amazon Transcribe.', 'd'),
-        ('A company wants to assess the performance of a foundation model (FM) for text generation. Which technique or metric will meet these requirements?','Reinforcement learning', 'F1 score', 'Recall-Oriented Understudy for Gisting Evaluation (ROUGE)','Fine-tuning', 'c'),
-        ('A company has a containerized frontend application for its AI application. The company must implement a solution to assess its AWS environment security posture.The solution must identify potential security vulnerabilities across Amazon EC2 instances and Amazon Elastic Container Registry (Amazon ECR) repositories for the application.The solution should provide recommendations for remediation.Which AWS service will meet these requirements?','AWS CloudTrail','AWS Config','Amazon Inspector','AWS Artifact','c')
-    ]
+        ("Which Azure service helps orchestrate workflows visually between services?", "Azure Logic Apps",
+         "Azure Functions", "Azure Automation", "Azure DevOps", "a")
+        ("Which Azure service is designed for identity and access management?", "Azure Active Directory",
+         "Azure Security Center", "Azure Monitor", "Azure Policy", "a")
+        ("Which Azure service balances network traffic between applications?", "Azure Load Balancer",
+         "Azure Application Gateway", "Azure Front Door", "Azure ExpressRoute", "a")
+        ("Which Azure service allows you to back up and restore workloads?", "Azure Backup", "Azure Site Recovery",
+         "Azure Storage Explorer", "Azure Key Vault", "a")
+        ("Which Azure service provides governance and compliance recommendations?", "Azure Advisor", "Azure Policy",
+         "Azure Monitor", "Azure Automation", "a")
+        ("Which Azure service provides cost management and budgeting tools?", "Azure Cost Management + Billing",
+         "Azure Advisor", "Azure Monitor", "Azure Policy", "a")
+        ("Which Azure service enables real-time event streaming and processing?", "Azure Event Hubs",
+         "Azure Logic Apps", "Azure Service Bus", "Azure Functions", "a")
+        ("Which Azure service provides centralized management for multiple subscriptions?", "Azure Management Groups",
+         "Azure Resource Manager", "Azure Policy", "Azure Monitor", "a")
+        ("Which Azure service provides scalable, distributed NoSQL database capabilities?", "Azure Cosmos DB",
+         "Azure SQL Database", "Azure Synapse Analytics", "Azure Blob Storage", "a")
+        ("Which Azure service lets you run Windows 10/11 desktops in the cloud?", "Azure Virtual Desktop",
+         "Azure Kubernetes Service", "Azure App Service", "Azure Virtual Machines", "a")
+        ("Which Azure service delivers content globally with low latency?", "Azure Content Delivery Network",
+         "Azure Front Door", "Azure Traffic Manager", "Azure Load Balancer", "a")
+        ("Which Azure service is used to host and scale containerized applications?", "Azure App Service",
+         "Azure Kubernetes Service", "Azure Virtual Machines", "Azure Logic Apps", "b")
+        ("Which Azure service provides analytics for security and threat detection?", "Azure Policy",
+         "Microsoft Sentinel", "Azure Advisor", "Azure Defender", "b")
+        ("Which Azure service provides a scalable, managed Apache Spark platform?", "Azure Functions",
+         "Azure Databricks", "Azure DevOps", "Azure Logic Apps", "b")
+        ("Which Azure service allows integration and automation between cloud and on-prem systems?", "Azure Event Grid",
+         "Azure Logic Apps", "Azure Service Bus", "Azure Functions", "b")
+        ("Which Azure service helps secure cloud resources with policies and compliance rules?", "Azure Automation",
+         "Azure Policy", "Azure Firewall", "Azure Load Balancer", "b")
+        ("Which Azure service provides prebuilt AI models for vision, speech, and language?", "Azure OpenAI Service",
+         "Azure Cognitive Services", "Azure Bot Service", "Azure HDInsight", "b")
+        ("Which Azure service provides centralized key and secret management?", "Azure App Service", "Azure Key Vault",
+         "Azure Databricks", "Azure Monitor", "b")
+        ("Which Azure service enables disaster recovery for virtual machines?", "Azure Backup", "Azure Site Recovery",
+         "Azure Sentinel", "Azure Automation", "b")
+        ("Which Azure service helps monitor applications and infrastructure in real time?", "Azure Log Analytics",
+         "Azure Monitor", "Azure Defender", "Azure Policy", "b")
+        ("Which Azure service allows you to move data between on-prem and cloud efficiently?", "Azure ExpressRoute",
+         "Azure Data Box", "Azure HDInsight", "Azure Event Hubs", "b")
+        ("Which Azure service provides hybrid cloud management for on-prem resources?", "Azure Policy", "Azure Arc",
+         "Azure Lighthouse", "Azure Bastion", "b")
+        ("Which Azure service allows you to deploy infrastructure using templates?", "Azure Key Vault",
+         "Azure Firewall", "Azure Resource Manager", "Azure Synapse Analytics", "c")
+        ("Which Azure service provides cloud-based version control and CI/CD pipelines?", "Azure Automation",
+         "Azure Key Vault", "Azure DevOps", "Azure Policy", "c")
+        ("Which Azure service provides serverless compute for event-driven code?", "Azure Automation",
+         "Azure Kubernetes Service", "Azure Logic Apps", "Azure Functions", "c")
+        ("Which Azure service provides a platform for big data analytics and data warehousing?", "Azure Data Factory",
+         "Azure Databricks", "Azure Synapse Analytics", "Azure App Service", "c")
+        ("Which Azure service enables conversational bots using AI?", "Azure Cognitive Services", "Azure HDInsight",
+         "Azure Bot Service", "Azure Databricks", "c")
+        ("Which Azure service provides message queuing for distributed applications?", "Azure App Service",
+         "Azure Blob Storage", "Azure Service Bus", "Azure Policy", "c")
+        ("Which Azure service allows you to store unstructured data such as images and documents?", "Azure Cosmos DB",
+         "Azure Data Factory", "Azure Blob Storage", "Azure Policy", "c")
+        ("Which Azure service offers hybrid identity synchronization?", "Azure Arc", "Azure AD B2C", "Azure AD Connect",
+         "Azure Policy", "c")
+        ("Which Azure service provides AI and ML model training capabilities?", "Azure App Configuration",
+         "Azure Cognitive Services", "Azure Machine Learning", "Azure Bot Service", "c")
+        ("Which Azure service provides distributed caching to improve performance?", "Azure SQL Database",
+         "Azure Blob Storage", "Azure Cache for Redis", "Azure Functions", "c")
+        ("Which Azure service hosts and manages relational databases?", "Azure Databricks", "Azure Blob Storage",
+         "Azure SQL Database", "Azure Cosmos DB", "c")
+        ("Which Azure service enables private connections between on-prem and Azure?", "Azure Bastion",
+         "Azure Private Link", "Azure ExpressRoute", "Azure VPN Gateway", "d")
+        ("Which Azure service helps centralize configuration for distributed applications?", "Azure Automation",
+         "Azure Key Vault", "Azure DevOps", "Azure App Configuration", "d")
+        ("Which Azure service provides AI-powered search across datasets?", "Azure Data Factory", "Azure HDInsight",
+         "Azure Machine Learning", "Azure Cognitive Search", "d")
+        ("Which Azure service helps you manage secrets in CI/CD pipelines?", "Azure Logic Apps", "Azure DevOps Repos",
+         "Azure Policy", "Azure Key Vault", "d")
+        ("Which Azure service allows external partners to manage your resources securely?", "Azure Arc", "Azure Policy",
+         "Azure Automation", "Azure Lighthouse", "d")
+        ("Which Azure service provides automated remediation and compliance enforcement?", "Azure Policy",
+         "Azure Monitor", "Azure Advisor", "Azure Automation", "d")
+        ("Which Azure service allows running virtual machines in the cloud?", "Azure Functions", "Azure Logic Apps",
+         "Azure Kubernetes Service", "Azure Virtual Machines", "d")
+        ("Which Azure service manages APIs and provides analytics and security?", "Azure Load Balancer",
+         "Azure Application Gateway", "Azure Front Door", "Azure API Management", "d")
+        ("Which Azure service delivers real-time user behavior insights?", "Azure Log Analytics", "Azure Policy",
+         "Azure App Service", "Azure Application Insights", "d")
+        ("Which Azure service enables users to create and manage virtual networks?", "Azure Policy", "Azure Firewall",
+         "Azure Load Balancer", "Azure Virtual Network", "d")
+        ("Which Azure service provides pre-deployment recommendations for performance and cost?", "Azure Firewall",
+         "Azure Policy", "Azure Automation", "Azure Advisor", "d")
+        ("Which Azure service delivers high-performance, low-latency private connectivity?", "Azure Firewall",
+         "Azure Policy", "Azure Bastion", "Azure ExpressRoute", "d")		]
     
     # Insert questions into source table
     for i, q in enumerate(questions):

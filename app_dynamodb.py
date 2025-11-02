@@ -186,16 +186,69 @@ def admin_dashboard():
     
     return render_template('admin_dashboard.html', games=game_configs, active_games=games)
 
+@app.route('/api/join_game', methods=['POST'])
+def join_game_api():
+    data = request.json
+    game_id = data.get('game_id')
+    password = data.get('password')
+    player_name = data.get('player_name')
+    
+    if not all([game_id, password, player_name]):
+        return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+    
+    # Verify game exists and password is correct
+    if game_id not in games:
+        return jsonify({'success': False, 'message': 'Game not found'}), 404
+    
+    game = games[game_id]
+    if game.password != password:
+        return jsonify({'success': False, 'message': 'Invalid password'}), 401
+    
+    # Store game session
+    session[f'game_{game_id}'] = {
+        'player_name': player_name,
+        'authenticated': True
+    }
+    
+    return jsonify({'success': True, 'redirect': f'/game/{game_id}'})
+
+@app.route('/api/get_session_info', methods=['POST'])
+def get_session_info():
+    data = request.json
+    game_id = data.get('game_id')
+    
+    if not game_id:
+        return jsonify({'success': False, 'message': 'Game ID required'}), 400
+    
+    session_key = f'game_{game_id}'
+    if session_key not in session or not session[session_key].get('authenticated'):
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+    
+    return jsonify({
+        'success': True,
+        'player_name': session[session_key]['player_name']
+    })
+
 @app.route('/game/<game_id>')
 def game_lobby(game_id):
     if game_id not in games:
         return "Game not found", 404
+    
+    # Check if user is authenticated for this game
+    if f'game_{game_id}' not in session or not session[f'game_{game_id}'].get('authenticated'):
+        return redirect(url_for('index'))
+    
     return render_template('game_lobby.html', game_id=game_id)
 
 @app.route('/game/<game_id>/play')
 def game_play(game_id):
     if game_id not in games:
         return "Game not found", 404
+    
+    # Check if user is authenticated for this game
+    if f'game_{game_id}' not in session or not session[f'game_{game_id}'].get('authenticated'):
+        return redirect(url_for('index'))
+    
     return render_template('game_play.html', game_id=game_id)
 
 @app.route('/game/<game_id>/admin')
@@ -238,8 +291,10 @@ def admin_login_api():
     
     if 'Item' in response and response['Item']['password'] == password:
         session['admin'] = username
-        return jsonify({'success': True})
-    return jsonify({'success': False})
+        return jsonify({'success': True, 'redirect': '/admin/dashboard'})
+    else:
+        return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+
 
 @app.route('/api/admin/create_game', methods=['POST'])
 def create_game():
@@ -349,10 +404,9 @@ def delete_game():
 @socketio.on('join_game')
 def handle_join_game(data):
     game_id = data['game_id']
-    password = data['password']
     player_name = data['player_name']
     
-    print(f"Player {player_name} trying to join game {game_id} with password {password}", flush=True)
+    print(f"Player {player_name} trying to join game {game_id}", flush=True)
     
     if game_id not in games:
         print(f"Game {game_id} not found in memory", flush=True)
@@ -360,12 +414,6 @@ def handle_join_game(data):
         return
     
     game = games[game_id]
-    print(f"Game password: {game.password}, provided password: {password}", flush=True)
-    
-    if game.password != password:
-        print(f"Invalid password for game {game_id}", flush=True)
-        emit('error', {'message': 'Invalid password'})
-        return
     
     if len(game.players) >= 100:
         print(f"Game {game_id} is full", flush=True)
@@ -510,115 +558,177 @@ def handle_start_game(data):
     # Wait longer to ensure round start screen is seen
     threading.Timer(8.0, start_question, [game_id]).start()
 
-def start_question(game_id):
-    if game_id not in games:
-        print(f"Game {game_id} not found in start_question", flush=True)
-        return
+def validate_question(question):
+    """Validate question has required fields"""
+    required_fields = ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer']
     
-    game = games[game_id]
-    print(f"Total players in game: {len(game.players)}", flush=True)
+    for field in required_fields:
+        if field not in question:
+            return False
     
-    # Check if only one player remains active before starting question
-    active_players = [p for p in game.players.values() if not p['eliminated']]
-    print(f"Active players: {len(active_players)}", flush=True)
-    
-    if len(active_players) <= 1:
-        print(f"Not enough active players ({len(active_players)}), ending game", flush=True)
+    # Check if correct_answer is valid (a, b, c, or d)
+    if question['correct_answer'] not in ['a', 'b', 'c', 'd']:
+        return False
+        
+    return True
+
+def find_correct_answer_fallback(question, correct_text):
+    """Try to find correct answer by matching text"""
+    for option in ['a', 'b', 'c', 'd']:
+        option_key = f'option_{option}'
+        if option_key in question and question[option_key] == correct_text:
+            question['correct_answer'] = option  # Fix the correct_answer field
+            return correct_text
+    return None
+
+def skip_to_next_question(game_id):
+    """Skip current question and move to next"""
+    try:
+        game = games[game_id]
+        game.current_question += 1
+        
+        socketio.emit('question_skipped', {
+            'message': 'Question had errors and was skipped'
+        }, room=game_id)
+        
+        # Start next question after short delay
+        threading.Timer(2.0, start_question, [game_id]).start()
+        
+    except Exception as e:
+        print(f"Error skipping question: {e}", flush=True)
         end_game(game_id)
-        return
-    
-    print(f"Starting question for game {game_id}, round {game.current_round}, question {game.current_question}", flush=True)
-    
-    if game.current_question >= 15:
-        print(f"Round {game.current_round} complete, ending round", flush=True)
-        end_round(game_id)
-        return
-    
-    # Use modulo to cycle through questions if we run out
-    question_idx = ((game.current_round - 1) * 15 + game.current_question) % len(game.questions)
-    question = game.questions[question_idx]
-    print(f"Question data: {question}", flush=True)
-    
-    # Reset question state completely
-    game.question_start_time = time.time()
-    game.answers = {}
-    game.voting_active = False
-    game.votes_cast = {}
-    game.points_awarded = {}
-    game.question_expired = False
-    
-    # Cancel any existing timers
-    if game_id in game_timers:
-        game_timers[game_id].cancel()
-        del game_timers[game_id]
-    
-    # Randomize correct answer position
-    import random
-    positions = ['a', 'b', 'c', 'd']
-    new_correct_position = random.choice(positions)
-    
-    # Get the correct answer text
-    original_correct = question['correct_answer']
-    correct_text = question[f'option_{original_correct}']
-    
-    # Create list of all answer texts
-    all_options = [
-        question['option_a'],
-        question['option_b'],
-        question['option_c'],
-        question['option_d']
-    ]
-    
-    # Remove correct answer and shuffle remaining
-    other_options = [opt for opt in all_options if opt != correct_text]
-    random.shuffle(other_options)
-    
-    # Place correct answer in random position, fill others
-    final_options = [''] * 4
-    correct_index = positions.index(new_correct_position)
-    final_options[correct_index] = correct_text
-    
-    other_index = 0
-    for i in range(4):
-        if i != correct_index:
-            final_options[i] = other_options[other_index]
-            other_index += 1
-    
-    # Store the randomized correct answer
-    game.current_correct_answer = new_correct_position
-    
-    question_data = {
-        'round': game.current_round,
-        'question_num': game.current_question + 1,
-        'question': question['question'],
-        'options': {
-            'a': final_options[0],
-            'b': final_options[1],
-            'c': final_options[2],
-            'd': final_options[3]
-        },
-        'correct_answer': new_correct_position
-    }
-    
-    print(f"Sending question data to room {game_id}: {question_data}", flush=True)
-    print(f"Active players: {[p['name'] for p in game.players.values() if not p['eliminated']]}", flush=True)
-    
-    # Send to all players individually to ensure delivery
-    for player_sid in game.players.keys():
-        socketio.emit('new_question', question_data, room=player_sid)
-    
-    # Also send to room as backup
-    socketio.emit('new_question', question_data, room=game_id)
-    
-    # Send question data to admin
-    if game.admin_sid:
-        socketio.emit('new_question', question_data, room=game.admin_sid)
-    
-    # Start 15-second timer
-    timer = threading.Timer(15.0, question_timeout, [game_id])
-    game_timers[game_id] = timer
-    timer.start()
-    print(f"Question timer started for 15 seconds", flush=True)
+
+def start_question(game_id):
+    try:
+        if game_id not in games:
+            print(f"Game {game_id} not found in start_question", flush=True)
+            return
+        
+        game = games[game_id]
+        print(f"Total players in game: {len(game.players)}", flush=True)
+        
+        # Check if only one player remains active before starting question
+        active_players = [p for p in game.players.values() if not p['eliminated']]
+        print(f"Active players: {len(active_players)}", flush=True)
+        
+        if len(active_players) <= 1:
+            print(f"Not enough active players ({len(active_players)}), ending game", flush=True)
+            end_game(game_id)
+            return
+        
+        print(f"Starting question for game {game_id}, round {game.current_round}, question {game.current_question}", flush=True)
+        
+        if game.current_question >= 15:
+            print(f"Round {game.current_round} complete, ending round", flush=True)
+            end_round(game_id)
+            return
+        
+        # Use modulo to cycle through questions if we run out
+        question_idx = ((game.current_round - 1) * 15 + game.current_question) % len(game.questions)
+        question = game.questions[question_idx]
+        print(f"Question data: {question}", flush=True)
+        
+        # Validate question structure
+        if not validate_question(question):
+            print(f"Invalid question structure: {question}", flush=True)
+            skip_to_next_question(game_id)
+            return
+        
+        # Reset question state completely
+        game.question_start_time = time.time()
+        game.answers = {}
+        game.voting_active = False
+        game.votes_cast = {}
+        game.points_awarded = {}
+        game.question_expired = False
+        
+        # Cancel any existing timers
+        if game_id in game_timers:
+            game_timers[game_id].cancel()
+            del game_timers[game_id]
+        
+        # Randomize correct answer position
+        import random
+        positions = ['a', 'b', 'c', 'd']
+        new_correct_position = random.choice(positions)
+        
+        # Get the correct answer text with error handling
+        original_correct = question['correct_answer']
+        try:
+            correct_text = question[f'option_{original_correct}']
+        except KeyError:
+            print(f"Error: Invalid correct_answer '{original_correct}' for question {question.get('id', 'unknown')}", flush=True)
+            # Try to find the correct answer by matching text
+            correct_text = find_correct_answer_fallback(question, original_correct)
+            if not correct_text:
+                skip_to_next_question(game_id)
+                return
+            original_correct = question['correct_answer']  # Use the fixed value
+        
+        # Create list of all answer texts
+        all_options = [
+            question['option_a'],
+            question['option_b'],
+            question['option_c'],
+            question['option_d']
+        ]
+        
+        # Remove correct answer and shuffle remaining
+        other_options = [opt for opt in all_options if opt != correct_text]
+        random.shuffle(other_options)
+        
+        # Place correct answer in random position, fill others
+        final_options = [''] * 4
+        correct_index = positions.index(new_correct_position)
+        final_options[correct_index] = correct_text
+        
+        other_index = 0
+        for i in range(4):
+            if i != correct_index:
+                final_options[i] = other_options[other_index]
+                other_index += 1
+        
+        # Store the randomized correct answer
+        game.current_correct_answer = new_correct_position
+        
+        question_data = {
+            'round': game.current_round,
+            'question_num': game.current_question + 1,
+            'question': question['question'],
+            'options': {
+                'a': final_options[0],
+                'b': final_options[1],
+                'c': final_options[2],
+                'd': final_options[3]
+            },
+            'correct_answer': new_correct_position
+        }
+        
+        print(f"Sending question data to room {game_id}: {question_data}", flush=True)
+        print(f"Active players: {[p['name'] for p in game.players.values() if not p['eliminated']]}", flush=True)
+        
+        # Send to all players individually to ensure delivery
+        for player_sid in game.players.keys():
+            socketio.emit('new_question', question_data, room=player_sid)
+        
+        # Also send to room as backup
+        socketio.emit('new_question', question_data, room=game_id)
+        
+        # Send question data to admin
+        if game.admin_sid:
+            socketio.emit('new_question', question_data, room=game.admin_sid)
+        
+        # Start 30-second timer
+        timer = threading.Timer(30.0, question_timeout, [game_id])
+        game_timers[game_id] = timer
+        timer.start()
+        print(f"Question timer started for 30 seconds", flush=True)
+        
+    except Exception as e:
+        print(f"Error in start_question: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+        skip_to_next_question(game_id)
 
 @socketio.on('submit_answer')
 def handle_submit_answer(data):
@@ -978,34 +1088,40 @@ def end_voting(game_id):
 
 @socketio.on('next_question')
 def handle_next_question(data):
-    game_id = data['game_id']
-    print(f"Admin requesting next question for game {game_id}", flush=True)
-    
-    if game_id not in games:
-        print(f"Game {game_id} not found", flush=True)
-        return
-    
-    game = games[game_id]
-    if game.admin_sid != request.sid:
-        print(f"Unauthorized next question request", flush=True)
-        return
-    
-    # Reset voting state
-    game.voting_active = False
-    game.votes_cast = {}
-    game.points_awarded = {}
-    
-    # Clear previous answers
-    game.answers = {}
-    
-    game.current_question += 1
-    print(f"Moving to question {game.current_question} in round {game.current_round}", flush=True)
-    
-    # Check if round is complete
-    if game.current_question >= 15:
-        end_round(game_id)
-    else:
-        start_question(game_id)
+    try:
+        game_id = data['game_id']
+        print(f"Admin requesting next question for game {game_id}", flush=True)
+        
+        if game_id not in games:
+            print(f"Game {game_id} not found", flush=True)
+            return
+        
+        game = games[game_id]
+        if game.admin_sid != request.sid:
+            print(f"Unauthorized next question request", flush=True)
+            return
+        
+        # Reset voting state
+        game.voting_active = False
+        game.votes_cast = {}
+        game.points_awarded = {}
+        
+        # Clear previous answers
+        game.answers = {}
+        
+        game.current_question += 1
+        print(f"Moving to question {game.current_question} in round {game.current_round}", flush=True)
+        
+        # Check if round is complete
+        if game.current_question >= 15:
+            end_round(game_id)
+        else:
+            start_question(game_id)
+            
+    except Exception as e:
+        print(f"Error in handle_next_question: {e}", flush=True)
+        if 'game_id' in data and data['game_id'] in games:
+            skip_to_next_question(data['game_id'])
 
 def next_question(game_id):
     if game_id not in games:

@@ -29,19 +29,33 @@
 
 <script>
 const socket = io();
-const urlParams = new URLSearchParams(window.location.search);
 const gameId = window.location.pathname.split('/')[2];
-const password = urlParams.get('password');
-const playerName = urlParams.get('name');
 
-if (!password || !playerName) {
+// Get player info from session via API
+fetch('/api/get_session_info', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ game_id: gameId })
+})
+.then(response => response.json())
+.then(sessionData => {
+    if (!sessionData.success) {
+        window.location.href = '/';
+        return;
+    }
+    
+    const playerName = sessionData.player_name;
+    
+    socket.emit('join_game', {
+        game_id: gameId,
+        player_name: playerName
+    });
+})
+.catch(error => {
+    console.error('Error:', error);
     window.location.href = '/';
-}
-
-socket.emit('join_game', {
-    game_id: gameId,
-    password: password,
-    player_name: playerName
 });
 
 socket.on('joined_game', function(data) {
@@ -68,8 +82,7 @@ socket.on('player_joined', function(data) {
 socket.on('game_started', function() {
     document.getElementById('waitingArea').style.display = 'none';
     document.getElementById('gameArea').style.display = 'block';
-    sessionStorage.setItem('gamePassword', password);
-    window.location.href = `/game/${gameId}/play?name=${playerName}&password=${password}`;
+    window.location.href = `/game/${gameId}/play`;
 });
 
 socket.on('error', function(data) {

@@ -35,7 +35,29 @@ document.getElementById('joinForm').addEventListener('submit', function(e) {
     const playerName = document.getElementById('playerName').value;
     
     if (gameId && password && playerName) {
-        window.location.href = `/game/${gameId}?password=${password}&name=${playerName}`;
+        fetch('/api/join_game', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                game_id: gameId,
+                password: password,
+                player_name: playerName
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
     }
 });
 </script>
