@@ -429,15 +429,7 @@ def handle_join_game(data):
     # Check for duplicate names (but allow same sid to rejoin)
     if not player_exists:
         existing_names = [p['name'] for p in game.players.values()]
-        
-        # Allow rejoining if this is the same player reconnecting (check session)
-        session_key = f'game_{game_id}'
-        if (player_name in existing_names and 
-            session_key in session and 
-            session[session_key].get('player_name') == player_name):
-            # This is the same player reconnecting, allow it
-            print(f"Player {player_name} reconnecting to game {game_id}", flush=True)
-        elif player_name in existing_names:
+        if player_name in existing_names:
             print(f"Name {player_name} already taken in game {game_id}", flush=True)
             emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
             return
