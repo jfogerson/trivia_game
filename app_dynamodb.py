@@ -429,16 +429,10 @@ def handle_join_game(data):
     # Check for duplicate names (but allow same sid to rejoin)
     if not player_exists:
         existing_names = [p['name'] for p in game.players.values()]
-        print(f"DEBUG: Game {game_id} status: {game.status}", flush=True)
-        print(f"DEBUG: Existing players: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
-        print(f"DEBUG: Existing names: {existing_names}", flush=True)
-        print(f"DEBUG: New player name: {player_name}", flush=True)
-        
-        # Temporarily disable duplicate check for debugging
-        # if player_name in existing_names:
-        #     print(f"Name {player_name} already taken in game {game_id}", flush=True)
-        #     emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
-        #     return
+        if player_name in existing_names:
+            print(f"Name {player_name} already taken in game {game_id}", flush=True)
+            emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
+            return
         
         print(f"Current players in game: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
         print(f"New player {player_name} with sid {request.sid} joining", flush=True)
@@ -1202,16 +1196,20 @@ def handle_disconnect():
     print(f"Player disconnected: {request.sid}", flush=True)
     
     try:
-        # Remove player from all games
-        for game_id, game in games.items():
+        # Remove player from all games immediately
+        for game_id, game in list(games.items()):
             if request.sid in game.players:
                 player_name = game.players[request.sid]['name']
                 print(f"Removing {player_name} from game {game_id}", flush=True)
                 del game.players[request.sid]
                 
+                # Also remove from any active answers
+                if hasattr(game, 'answers') and request.sid in game.answers:
+                    del game.answers[request.sid]
+                
                 # If this was during a question and all remaining connected players have answered, end the question
                 if hasattr(game, 'answers') and game.status == 'playing':
-                    connected_active_sids = [sid for sid, p in game.players.items() if not p['eliminated'] and sid in socketio.server.manager.rooms.get('/', {}).get(game_id, set())]
+                    connected_active_sids = [sid for sid, p in game.players.items() if not p['eliminated']]
                     if len(game.answers) >= len(connected_active_sids) and len(connected_active_sids) > 0:
                         if game_id in game_timers:
                             game_timers[game_id].cancel()
@@ -1220,7 +1218,7 @@ def handle_disconnect():
                         question_timeout(game_id)
                 break
     except Exception as e:
-        print(f"disconnect handler error", flush=True)
+        print(f"disconnect handler error: {e}", flush=True)
         import traceback
         traceback.print_exc()
 
