@@ -415,17 +415,40 @@ def handle_join_game(data):
     
     game = games[game_id]
     
+    # Clean up disconnected players first
+    connected_sids = set()
+    try:
+        # Get currently connected socket IDs for this room
+        room_sids = socketio.server.manager.get_participants('/', game_id)
+        connected_sids = set(room_sids)
+    except:
+        pass
+    
+    # Remove disconnected players from game.players
+    disconnected_sids = []
+    for sid in list(game.players.keys()):
+        if sid not in connected_sids and sid != request.sid:
+            disconnected_sids.append(sid)
+    
+    for sid in disconnected_sids:
+        player_name_removed = game.players[sid]['name']
+        del game.players[sid]
+        print(f"Removed disconnected player {player_name_removed} (sid: {sid})", flush=True)
+    
     if len(game.players) >= 100:
         print(f"Game {game_id} is full", flush=True)
         emit('error', {'message': 'Game is full'})
         return
     
-    # Check if player already exists (prevent duplicates)
+    # Check if this exact player (by sid) already exists
     player_exists = request.sid in game.players
     
     if not player_exists:
-        # Check for duplicate names only for new players
-        existing_names = [p['name'].lower() for p in game.players.values() if p['name']]
+        # Check for duplicate names among currently connected players
+        existing_names = [p['name'].lower() for p in game.players.values() if p.get('name')]
+        print(f"Existing names in game: {existing_names}", flush=True)
+        print(f"New player name: {player_name.lower()}", flush=True)
+        
         if player_name.lower() in existing_names:
             print(f"Name {player_name} already taken in game {game_id}", flush=True)
             emit('error', {'message': 'Name already taken. Please choose a different name.'})
