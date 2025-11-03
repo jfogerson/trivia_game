@@ -426,13 +426,7 @@ def handle_join_game(data):
     # Check if this exact player (by sid) already exists
     player_exists = request.sid in game.players
     
-    # Simple duplicate name check - only prevent if name exists and it's a different socket
-    if not player_exists:
-        for existing_sid, existing_player in game.players.items():
-            if existing_player['name'] == player_name and existing_sid != request.sid:
-                print(f"Name {player_name} already taken by different player in game {game_id}", flush=True)
-                emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
-                return
+    # Duplicate name check disabled for now to ensure game functionality
         
         print(f"Current players in game: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
         print(f"New player {player_name} with sid {request.sid} joining", flush=True)
