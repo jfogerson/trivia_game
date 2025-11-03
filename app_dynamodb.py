@@ -423,24 +423,16 @@ def handle_join_game(data):
         emit('error', {'message': 'Game is full'})
         return
     
-    # Clean up any disconnected players first
-    connected_sids = set(socketio.server.manager.rooms.get('/', {}).get(game_id, set()))
-    disconnected_sids = [sid for sid in game.players.keys() if sid not in connected_sids]
-    for sid in disconnected_sids:
-        print(f"Removing disconnected player {game.players[sid]['name']} (sid: {sid})", flush=True)
-        del game.players[sid]
-    
     # Check if this exact player (by sid) already exists
     player_exists = request.sid in game.players
     
-    # Check for duplicate names (but allow same sid to rejoin)
+    # Simple duplicate name check - only prevent if name exists and it's a different socket
     if not player_exists:
-        existing_names = [p['name'] for p in game.players.values()]
-        # Temporarily disabled duplicate name check for testing
-        # if player_name in existing_names:
-        #     print(f"Name {player_name} already taken in game {game_id}", flush=True)
-        #     emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
-        #     return
+        for existing_sid, existing_player in game.players.items():
+            if existing_player['name'] == player_name and existing_sid != request.sid:
+                print(f"Name {player_name} already taken by different player in game {game_id}", flush=True)
+                emit('error', {'message': f'Name "{player_name}" is already taken. Please choose a different name.'})
+                return
         
         print(f"Current players in game: {[(sid, p.get('name', 'NO_NAME')) for sid, p in game.players.items()]}", flush=True)
         print(f"New player {player_name} with sid {request.sid} joining", flush=True)
